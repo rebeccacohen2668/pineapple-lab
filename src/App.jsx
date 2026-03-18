@@ -1,1034 +1,1256 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-// --- Custom CSS for Animations ---
+// =========================
+// CSS גלובלי
+// =========================
 const customStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&display=swap');
-  
-  @keyframes bubble-rise {
-    0% { transform: translateY(0) scale(0.5); opacity: 0; }
-    20% { opacity: 1; transform: translateY(-10px) scale(1); }
-    100% { transform: translateY(-140px) scale(1.2); opacity: 0; }
-  }
-  
-  @keyframes foam-grow-large {
-    0% { height: 0; opacity: 0; }
-    10% { opacity: 1; }
-    100% { height: 45%; opacity: 1; }
-  }
-  
-  @keyframes foam-grow-medium {
-    0% { height: 0; opacity: 0; }
-    10% { opacity: 1; }
-    100% { height: 25%; opacity: 1; }
-  }
+  @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800;900&display=swap');
 
-  @keyframes pipette-drop {
-    0% { transform: translateY(0) scale(0.5); opacity: 0; }
-    20% { transform: translateY(3px) scale(1); opacity: 1; }
-    80% { transform: translateY(40px) scale(0.8); opacity: 1; }
-    100% { transform: translateY(50px) scale(0.5); opacity: 0; }
-  }
-
-  .animate-pipette-drop {
-    animation: pipette-drop 0.6s ease-in infinite;
-  }
-
-  .bubble {
-    position: absolute;
-    bottom: 4px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.9);
-    animation: bubble-rise infinite ease-in;
-  }
-  
-  .foam-layer {
-    position: absolute;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.98);
-    z-index: 20;
-    border-top: 2px dotted rgba(180, 180, 180, 0.8);
-    border-radius: 8px 8px 0 0;
-  }
-  
-  .foam-large { animation: foam-grow-large 3s ease-out forwards; }
-  .foam-medium { animation: foam-grow-medium 3s ease-out forwards; }
-
-  .rtl { direction: rtl; }
-  .ltr { direction: ltr; }
-  
+  * { box-sizing: border-box; }
   body { font-family: 'Rubik', sans-serif; }
+  .rtl { direction: rtl; }
+
+  /* === טיפה נופלת מהפיפטה === */
+  @keyframes drop-fall {
+    0%   { transform: translateY(0px) scaleY(0.4); opacity: 0; }
+    15%  { transform: translateY(4px) scaleY(1); opacity: 1; }
+    80%  { transform: translateY(40px) scaleY(1); opacity: 0.8; }
+    100% { transform: translateY(50px) scaleY(0.3); opacity: 0; }
+  }
+  .falling-drop {
+    position: absolute;
+    top: 38px;
+    left: calc(50% - 4.5px);
+    width: 9px; height: 13px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    transform-origin: top center;
+    animation: drop-fall 0.5s linear infinite;
+    z-index: 20;
+  }
+
+  /* === פיפטה === */
+  .pipette-tip {
+    position: relative;
+    width: 11px; height: 40px;
+    background: linear-gradient(to bottom, #e2e8f0, #f8fafc);
+    border: 1.5px solid #94a3b8;
+    border-radius: 3px 3px 5px 5px;
+    z-index: 40;
+  }
+  .pipette-liquid {
+    position: absolute;
+    bottom: 2px; left: 2px; right: 2px;
+    border-radius: 0 0 3px 3px;
+    transition: height 0.4s;
+  }
+
+  /* === זכוכית המבחנה === */
+  .tube-glass {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.45);
+    border-left: 3px solid #cbd5e1;
+    border-right: 3px solid #cbd5e1;
+    border-bottom: 3px solid #cbd5e1;
+    border-radius: 0 0 22px 22px;
+    box-shadow: inset 2px 0 6px rgba(0,0,0,0.04), inset -2px 0 6px rgba(0,0,0,0.04);
+    overflow: hidden;
+    z-index: 10;
+  }
+  /* ברק על הזכוכית */
+  .tube-glass::after {
+    content: '';
+    position: absolute;
+    top: 4px; left: 4px;
+    width: 3px; height: 60%;
+    background: rgba(255,255,255,0.6);
+    border-radius: 2px;
+  }
+
+  /* === אדים === */
+  @keyframes steam {
+    0%   { transform: translateY(0) scale(0.7); opacity: 0; }
+    20%  { opacity: 0.6; }
+    100% { transform: translateY(-38px) scale(1.6); opacity: 0; }
+  }
+  .steam {
+    position: absolute;
+    width: 11px; height: 11px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.75);
+    filter: blur(3px);
+    animation: steam 2.2s ease-out infinite;
+  }
+
+  /* === רטט ערבוב === */
+  @keyframes jiggle {
+    0%, 100% { transform: rotate(0deg); }
+    20%  { transform: rotate(5deg); }
+    50%  { transform: rotate(-5deg); }
+    80%  { transform: rotate(4deg); }
+  }
+  .animate-jiggle {
+    animation: jiggle 0.45s ease-in-out infinite;
+    transform-origin: center bottom;
+  }
+
+  /* === תוצאה: ג'ל נקרש (pulse ירוק) === */
+  @keyframes gelPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+    50%       { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+  }
+  .gel-pulse { animation: gelPulse 1.5s ease-in-out 3; }
+
+  /* === כרטיס שאלה === */
+  .question-card {
+    border-radius: 1.5rem;
+    border: 2px solid #fde68a;
+    background: white;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: box-shadow 0.2s;
+  }
+  .question-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.09); }
 `;
 
-// --- Multiple Choice Component ---
-const MultipleChoiceQnA = ({ qNum, question, options, correctAnswerIndex, explanation, points, onAnswer }) => {
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+// =========================
+// כלי עזר
+// =========================
+const cx = (...cls) => cls.filter(Boolean).join(' ');
 
-  const handleOptionSelect = (index) => {
-    if (!isSubmitted) setSelectedOption(index);
-  };
+// =========================
+// איור אננס - מעוצב ומציאותי יותר
+// =========================
+const PineappleSVG = () => (
+  <svg viewBox="0 0 120 180" className="w-32 md:w-48 h-auto drop-shadow-xl" style={{ filter: 'drop-shadow(0px 10px 15px rgba(0,0,0,0.15))' }}>
+    {/* עלים (Crown) */}
+    <g fill="#4CAF50" stroke="#2E7D32" strokeWidth="2" strokeLinejoin="round">
+      <path d="M60 80 Q30 30 10 20 Q35 45 45 80 Z" />
+      <path d="M60 80 Q90 30 110 20 Q85 45 75 80 Z" />
+      <path d="M60 80 Q40 15 25 10 Q45 35 50 80 Z" fill="#43A047" />
+      <path d="M60 80 Q80 15 95 10 Q75 35 70 80 Z" fill="#43A047" />
+      <path d="M60 85 Q50 5 60 0 Q70 5 60 85 Z" fill="#2E7D32" />
+      <path d="M60 85 Q35 40 20 45 Q40 60 52 85 Z" fill="#66BB6A" />
+      <path d="M60 85 Q85 40 100 45 Q80 60 68 85 Z" fill="#66BB6A" />
+    </g>
+    
+    {/* גוף האננס (Body) */}
+    <g transform="translate(60, 125)">
+      <ellipse rx="42" ry="52" fill="#FBC02D" stroke="#E65100" strokeWidth="3"/>
+      {/* מרקם קשקשים אלכסוני */}
+      <g stroke="#E65100" strokeWidth="2" opacity="0.6">
+        <line x1="-28" y1="-35" x2="28" y2="35" />
+        <line x1="-10" y1="-48" x2="40" y2="15" />
+        <line x1="-40" y1="-15" x2="10" y2="48" />
+        <line x1="28" y1="-35" x2="-28" y2="35" />
+        <line x1="10" y1="-48" x2="-40" y2="15" />
+        <line x1="40" y1="-15" x2="-10" y2="48" />
+      </g>
+      {/* נקודות במרכז הקשקשים */}
+      <g fill="#F57F17">
+        <circle cx="0" cy="0" r="2.5" />
+        <circle cx="-18" cy="-24" r="2.5" />
+        <circle cx="18" cy="24" r="2.5" />
+        <circle cx="18" cy="-24" r="2.5" />
+        <circle cx="-18" cy="24" r="2.5" />
+        <circle cx="0" cy="-48" r="2" />
+        <circle cx="0" cy="48" r="2" />
+        <circle cx="-35" cy="0" r="2" />
+        <circle cx="35" cy="0" r="2" />
+      </g>
+    </g>
+  </svg>
+);
 
-  const handleSubmit = () => {
-    if (selectedOption !== null) {
-      setIsSubmitted(true);
-      const isCorrect = selectedOption === correctAnswerIndex;
-      if (onAnswer) {
-        onAnswer(qNum, isCorrect, points);
-      }
+// =========================
+// איור 1: מקצועי ונקי
+// =========================
+const proteinPaths = [
+  "M18,25 C18,5 40,5 45,25 C50,45 25,50 30,70 C35,90 55,75 65,90 C75,105 95,85 85,65 C75,45 55,60 50,40 C45,20 75,20 70,5 C65,-10 35,-5 40,15 C45,35 25,45 15,35 C5,25 15,40 18,25",
+  "M85,35 C100,45 85,65 75,50 C65,35 85,10 65,15 C45,20 50,45 35,35 C20,25 5,45 15,65 C25,85 5,95 20,105 C35,115 55,90 45,70 C35,50 65,45 75,65 C85,85 105,85 95,65 C85,45 100,35 85,35",
+  "M35,60 C45,75 30,95 15,85 C0,75 25,60 20,45 C15,30 35,20 45,35 C55,50 75,35 85,45 C95,55 75,80 65,70 C55,60 45,80 35,60"
+];
+
+const crossLinks = [
+  {x1: 28, y1: 28, x2: 40, y2: 24},
+  {x1: 22, y1: 52, x2: 32, y2: 62},
+  {x1: 42, y1: 75, x2: 50, y2: 86},
+  {x1: 55, y1: 52, x2: 65, y2: 62},
+  {x1: 68, y1: 18, x2: 78, y2: 32},
+  {x1: 75, y1: 48, x2: 85, y2: 60},
+  {x1: 42, y1: 38, x2: 52, y2: 45},
+  {x1: 20, y1: 78, x2: 32, y2: 72},
+  {x1: 62, y1: 82, x2: 72, y2: 75}
+];
+
+const RenderProteins = ({ withLinks }) => (
+  <svg viewBox="0 0 100 110" className="w-full h-full opacity-95 drop-shadow-md p-1">
+    {/* Protein Chains Outlines */}
+    {proteinPaths.map((d, i) => (
+      <path key={`out-${i}`} d={d} fill="none" stroke="#333333" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
+    ))}
+    {/* Protein Chains Inner Fill */}
+    {proteinPaths.map((d, i) => (
+      <path key={`in-${i}`} d={d} fill="none" stroke="#F8F9FA" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    ))}
+    {/* Protein Chains Stripes/Texture */}
+    {proteinPaths.map((d, i) => (
+      <path key={`str-${i}`} d={d} fill="none" stroke="#555555" strokeWidth="3" strokeDasharray="1 5" strokeLinecap="round" strokeLinejoin="round" />
+    ))}
+    {/* Cross-links (drawn on top as in reference image) */}
+    {withLinks && crossLinks.map((link, i) => (
+      <line key={`link-${i}`} x1={link.x1} y1={link.y1} x2={link.x2} y2={link.y2} stroke="#E11D48" strokeWidth="3.5" strokeLinecap="round" />
+    ))}
+  </svg>
+);
+
+const Figure1 = () => (
+  <div className="bg-white p-6 md:p-8 rounded-3xl w-full max-w-xl flex flex-col items-center shadow-lg border border-stone-200">
+    <h3 className="font-black text-stone-800 mb-6 text-base md:text-lg text-center">איור 1: השפעת הטמפרטורה על קרישה של תמיסת ג'לטין</h3>
+    
+    <div className="bg-gradient-to-r from-orange-100 to-amber-100 border-2 border-orange-300 text-orange-900 font-black px-6 py-2 rounded-full mb-8 z-10 text-sm shadow-sm">
+      תמיסת החלבון ג'לטין
+    </div>
+    
+    <div className="flex w-full justify-between relative px-2">
+      {/* ענף ימין: טמפרטורה נמוכה */}
+      <div className="flex flex-col items-center w-1/2 relative px-2">
+        <div className="text-xs md:text-sm text-stone-700 font-bold text-center h-10 leading-tight">בטמפרטורה<br/>הנמוכה מ- 10°C</div>
+        
+        {/* חץ מודרני מטה */}
+        <div className="flex flex-col items-center my-3 text-blue-500">
+           <svg width="24" height="40" viewBox="0 0 24 40">
+             <path d="M12 0 L12 35" stroke="currentColor" strokeWidth="3" strokeDasharray="4 4" fill="none"/>
+             <path d="M4 27 L12 38 L20 27" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+           </svg>
+        </div>
+
+        <div className="bg-blue-100 border-2 border-blue-400 text-blue-900 font-black px-5 py-1.5 rounded-full shadow-sm mb-5 text-sm">נקרשת</div>
+        
+        <div className="w-28 h-28 md:w-32 md:h-32 bg-gradient-to-br from-[#E1EFFE] to-[#BFDBFE] border-4 border-[#93C5FD] rounded-2xl relative overflow-hidden flex items-center justify-center shadow-inner">
+          <RenderProteins withLinks={true} />
+        </div>
+        <div className="mt-3 text-center text-xs font-bold text-stone-600 leading-tight">
+          קשרים בין<br/>שרשרות החלבון
+        </div>
+      </div>
+
+      {/* קו מפריד מרכזי */}
+      <div className="absolute top-0 bottom-0 left-1/2 w-px bg-stone-200 -translate-x-1/2"></div>
+
+      {/* ענף שמאל: טמפרטורה גבוהה */}
+      <div className="flex flex-col items-center w-1/2 relative px-2">
+        <div className="text-xs md:text-sm text-stone-700 font-bold text-center h-10 leading-tight">בטמפרטורה<br/>הגבוהה מ- 10°C</div>
+        
+        {/* חץ מודרני מטה */}
+        <div className="flex flex-col items-center my-3 text-orange-500">
+           <svg width="24" height="40" viewBox="0 0 24 40">
+             <path d="M12 0 L12 35" stroke="currentColor" strokeWidth="3" strokeDasharray="4 4" fill="none"/>
+             <path d="M4 27 L12 38 L20 27" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+           </svg>
+        </div>
+
+        <div className="bg-orange-100 border-2 border-orange-400 text-orange-900 font-black px-5 py-1.5 rounded-full shadow-sm mb-5 text-sm">לא נקרשת</div>
+        
+        <div className="w-28 h-28 md:w-32 md:h-32 bg-gradient-to-br from-[#FFEDD5] to-[#FDBA74] border-4 border-[#F97316] rounded-2xl relative overflow-hidden flex items-center justify-center shadow-inner">
+          <RenderProteins withLinks={false} />
+        </div>
+        <div className="mt-3 text-center text-xs font-bold text-stone-600 leading-tight">
+          שרשרות<br/>חלבון
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// =========================
+// איור 2: פירוק ג'לטין
+// =========================
+const Figure2 = () => (
+  <div className="bg-white p-5 rounded-2xl border-2 border-amber-100 mb-8 max-w-lg mx-auto shadow-sm">
+    <h3 className="text-center font-black text-amber-900 mb-5 text-base">
+      איור 2: פירוק הג'לטין לפפטידים באמצעות אנזימים
+    </h3>
+    <div className="flex flex-col md:flex-row items-center justify-center gap-5">
+      <div className="bg-yellow-100 border-2 border-yellow-400 text-yellow-900 font-bold px-5 py-3 rounded-xl text-center text-sm w-32">
+        ג'לטין<br/><span className="text-xs font-normal">(שרשרת ארוכה)</span>
+      </div>
+      <div className="flex flex-col items-center text-xs text-orange-600 font-bold gap-1">
+        <span>אנזים מפרק חלבון</span>
+        <span className="text-xl">→</span>
+      </div>
+      <div className="bg-stone-50 border-2 border-stone-300 text-stone-800 font-bold px-5 py-3 rounded-xl text-center text-sm w-32">
+        פפטידים<br/><span className="text-xs font-normal">(שרשרות קצרות)</span>
+      </div>
+    </div>
+  </div>
+);
+
+const InfoBox = ({ title, children }) => (
+  <div className="bg-yellow-50 border-r-8 border-yellow-400 p-5 rounded-2xl mb-8 shadow-sm">
+    <h3 className="font-black text-yellow-900 text-base mb-2">{title}</h3>
+    <div className="text-stone-800 text-sm leading-relaxed font-medium">{children}</div>
+  </div>
+);
+
+// =========================
+// רכיב מבחנה (תוקן ייצוב מלא של הנוזל במבחנה C ובשאר השלבים)
+// =========================
+const Tube = ({
+  label, phase,
+  pour1Phase, pour1Color,
+  pour2Phase, pour2Color,
+  mixPhase, tiltPhase,
+  gelHeight,
+  contents,
+}) => {
+  const isPouring1 = phase === pour1Phase;
+  const isPouring2 = phase === pour2Phase;
+  const isMixing   = phase === mixPhase;
+  const isTilted   = phase >= tiltPhase;
+
+  let fillPct = 0;
+  if (phase >= pour1Phase) fillPct += 30;
+  if (phase >= pour2Phase) fillPct += 30;
+
+  const isGelled = phase >= 5 && gelHeight > 0;
+  const isFullyGelled = isGelled && gelHeight >= fillPct - 1; // בדיקה אם המבחנה נקרשה לחלוטין (כמו מבחנה C)
+  
+  // אם הג'ל מלא - הנוזל נשאר בגובהו המלא אך מוסתר כדי שלא יקפוץ כשמטים
+  const liquidHeight = (phase >= 6 && isGelled && !isFullyGelled) ? Math.max(0, fillPct - gelHeight) : fillPct;
+  const liquidBottom = (phase >= 6 && isGelled && !isFullyGelled) ? gelHeight : 0;
+  const liquidOpacity = isFullyGelled ? 0 : (liquidHeight > 0 ? 0.88 : 0);
+  
+  const finalColor = phase >= pour2Phase ? pour2Color : pour1Color;
+  const tiltDeg = isTilted ? 45 : 0;
+
+  const [dropsVisible, setDropsVisible] = useState(false);
+  useEffect(() => {
+    if (isPouring1 || isPouring2) {
+      setDropsVisible(true);
+      const t = setTimeout(() => setDropsVisible(false), 1400);
+      return () => clearTimeout(t);
+    } else {
+      setDropsVisible(false);
     }
-  };
+  }, [phase, isPouring1, isPouring2]);
 
-  const isCorrect = selectedOption === correctAnswerIndex;
+  const dropColor = isPouring1 ? pour1Color : pour2Color;
 
   return (
-    <div className="border border-stone-200 rounded-xl p-4 md:p-5 mb-6 bg-white shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-      <div className="font-bold text-base md:text-lg mb-3 text-stone-800">
-        שאלה {qNum}: <span className="font-normal whitespace-pre-line">{question}</span>
-        <span className="text-sm font-normal text-stone-500 mr-2 inline-block bg-stone-100 px-2 py-0.5 rounded-full">({points} נקודות)</span>
-      </div>
-      
-      <div className="flex flex-col gap-2 mb-4">
-        {options.map((option, index) => {
-          let btnClass = "text-right p-3 rounded-lg border text-stone-700 transition-all duration-200 focus:outline-none ";
-          if (!isSubmitted) {
-             btnClass += selectedOption === index ? "bg-amber-100 border-amber-500 font-bold" : "bg-stone-50 hover:bg-stone-100 border-stone-300";
-          } else {
-            if (index === correctAnswerIndex) {
-              btnClass += "bg-lime-100 border-lime-600 font-bold text-lime-900"; 
-            } else if (index === selectedOption) {
-              btnClass += "bg-rose-100 border-rose-500 font-bold text-rose-900"; 
-            } else {
-              btnClass += "bg-stone-50 border-stone-200 opacity-60";
-            }
-          }
-
-          return (
-            <button key={index} onClick={() => handleOptionSelect(index)} disabled={isSubmitted} className={btnClass}>
-              <div className="flex items-center gap-3">
-                <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                  isSubmitted 
-                    ? (index === correctAnswerIndex ? 'border-lime-600 bg-lime-600' : (index === selectedOption ? 'border-rose-500 bg-rose-500' : 'border-stone-300'))
-                    : (selectedOption === index ? 'border-amber-500 bg-amber-500' : 'border-stone-400')
-                }`}>
-                  {isSubmitted && index === correctAnswerIndex && <span className="text-white text-xs">✓</span>}
-                  {isSubmitted && index === selectedOption && index !== correctAnswerIndex && <span className="text-white text-xs">✗</span>}
-                </div>
-                <span className="text-sm md:text-base">{option}</span>
+    <div className="flex flex-col items-center relative w-[56px] mb-6">
+      <div className="relative w-full h-[155px] flex justify-center">
+        <div
+          className={cx(
+            'absolute inset-0 origin-[50%_72%] transition-transform duration-[1400ms] ease-in-out',
+            isMixing ? 'animate-jiggle' : ''
+          )}
+          style={{ transform: `rotate(${tiltDeg}deg)` }}
+        >
+          {/* מילוי הטיפות (כולל הפיפטה) */}
+          {dropsVisible && (isPouring1 || isPouring2) && (
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 z-40 flex flex-col items-center transition-opacity duration-200">
+              <div className="pipette-tip">
+                <div className={cx('pipette-liquid', dropColor)} style={{ height: '55%' }} />
               </div>
+              {[0, 1, 2].map(i => (
+                <div
+                  key={i}
+                  className={cx('falling-drop', dropColor)}
+                  style={{ animationDelay: `${i * 0.22}s` }}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* המבחנה עצמה */}
+          <div className="tube-glass">
+            
+            {/* הג'ל (מסתובב עם המבחנה) */}
+            <div
+              className={cx(
+                'absolute bottom-0 w-full z-10 duration-1000 ease-in-out',
+                isGelled && isTilted ? 'gel-pulse' : ''
+              )}
+              style={{ 
+                transitionProperty: 'opacity',
+                height: `${gelHeight}%`, 
+                opacity: isGelled ? 1 : 0 
+              }}
+            >
+              <div className={cx('w-full h-full border-t-[3px] border-white/60 brightness-95 contrast-125', finalColor)} />
+            </div>
+
+            {/* הנוזל (נשאר אופקי) */}
+            <div
+              className="absolute w-full z-0 overflow-visible duration-1000 ease-in-out"
+              style={{
+                transitionProperty: 'opacity, height, bottom', 
+                bottom: `${liquidBottom}%`, 
+                height: `${liquidHeight}%`, 
+                opacity: liquidOpacity, 
+              }}
+            >
+              <div
+                className="absolute origin-top transition-transform duration-[1400ms]"
+                style={{
+                  width: '300px', height: '300px',
+                  left: '50%',
+                  transform: isTilted
+                    ? `translateX(-50%) rotate(${-tiltDeg}deg) translateY(-8px)`
+                    : 'translateX(-50%) rotate(0deg)',
+                }}
+              >
+                <div className={cx('w-full h-full', finalColor)} />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {/* כרטיס המבחנה */}
+      <div className="absolute top-[162px] bg-white border border-stone-200 rounded-xl p-2 shadow-sm w-[108px] flex flex-col items-center gap-1 z-30">
+        <div className="font-black text-amber-950 text-xs border-b border-amber-200 w-full text-center pb-1 mb-1">
+          מבחנה {label}
+        </div>
+        <div className="text-[10px] text-stone-600 font-bold text-center leading-tight min-h-[24px] flex flex-col justify-center">
+          {phase >= pour1Phase && <span>{contents[0]}</span>}
+          {phase >= pour2Phase && <span>{contents[1]}</span>}
+        </div>
+        {phase >= tiltPhase && (
+          <span className={cx(
+            'mt-1 w-full px-1 py-1 rounded-xl text-[10px] font-black border text-center block',
+            (phase >= 5 && gelHeight >= 58) 
+              ? 'bg-lime-100 text-lime-900 border-lime-400'
+              : 'bg-rose-100 text-rose-900 border-rose-400'
+          )}>
+            {(phase >= 5 && gelHeight >= 58) ? 'נקרש ✓' : 'לא נקרש ✗'}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// =========================
+// רכיב אמבט (עם שעון)
+// =========================
+const BathContainer = ({ phase, bathPhase1, bathPhase2, children, minWidth = '560px' }) => {
+  const [timeLeft, setTimeLeft] = useState(0);
+
+  useEffect(() => {
+    if (phase === bathPhase1) setTimeLeft(5 * 60);
+    else if (phase === bathPhase2) setTimeLeft(8 * 60);
+    else setTimeLeft(0);
+  }, [phase, bathPhase1, bathPhase2]);
+
+  useEffect(() => {
+    if (timeLeft > 0) {
+      const timerId = setInterval(() => {
+        setTimeLeft(t => Math.max(0, t - 15));
+      }, 100);
+      return () => clearInterval(timerId);
+    }
+  }, [timeLeft]);
+
+  const formatTime = (secs) => {
+    const m = Math.floor(secs / 60).toString().padStart(2, '0');
+    const s = (secs % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  return (
+    <div className="relative w-full max-w-5xl mx-auto bg-stone-50 border-4 border-stone-200 rounded-3xl overflow-hidden shadow-inner flex flex-col items-center overflow-x-auto">
+      <div className="h-16 w-full flex flex-col items-center justify-center mt-4 z-30" style={{ minWidth }}>
+        {phase === bathPhase1 && (
+          <>
+            <span className="text-orange-900 text-base font-black bg-white/95 px-7 py-1.5 rounded-full shadow border-2 border-orange-300 mb-1">
+              🌡 אמבט 1 — 37°C–40°C
+            </span>
+            <div className="text-xl font-mono font-black text-orange-700 bg-orange-100 px-4 py-0.5 rounded-full border border-orange-300">
+              ⏱️ {formatTime(timeLeft)}
+            </div>
+          </>
+        )}
+        {phase === bathPhase2 && (
+          <>
+            <span className="text-sky-900 text-base font-black bg-white/95 px-7 py-1.5 rounded-full shadow border-2 border-sky-300 mb-1">
+              ❄ אמבט 2 — קירור מתחת ל-10°C
+            </span>
+            <div className="text-xl font-mono font-black text-sky-700 bg-sky-100 px-4 py-0.5 rounded-full border border-sky-300">
+              ⏱️ {formatTime(timeLeft)}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="relative flex justify-center gap-6 md:gap-12 pt-3 z-10 w-full" style={{ paddingBottom: '185px', minWidth }}>
+        {children}
+      </div>
+
+      <div
+        className={cx(
+          'absolute left-0 right-0 transition-all duration-1000 z-0',
+          phase === bathPhase1 ? 'bg-orange-400/20 border-t-[3px] border-orange-300 opacity-100' :
+          phase === bathPhase2 ? 'bg-sky-500/20 border-t-[3px] border-sky-300 opacity-100' :
+          'opacity-0 pointer-events-none h-0'
+        )}
+        style={{ bottom: '185px', height: phase === bathPhase1 || phase === bathPhase2 ? '110px' : '0' }}
+      >
+        {phase === bathPhase1 && (
+          <>
+            <div className="steam" style={{ left: '20%', top: '8%' }} />
+            <div className="steam" style={{ left: '50%', top: '4%', animationDelay: '0.9s' }} />
+            <div className="steam" style={{ left: '78%', top: '12%', animationDelay: '1.7s' }} />
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// =========================
+// שאלות רב-ברירה
+// =========================
+const MCQ = ({ qNum, points, question, options, correctIndex, explanation, onScore }) => {
+  const [selected, setSelected]   = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+  const isCorrect = selected === correctIndex;
+
+  const submit = () => {
+    if (selected === null) return;
+    setSubmitted(true);
+    onScore?.(qNum, isCorrect ? points : 0, points);
+  };
+
+  return (
+    <div className="question-card">
+      <div className="flex flex-wrap items-start gap-3 mb-4">
+        <span className="bg-amber-500 text-white px-3 py-1 rounded-xl text-sm font-black shadow-sm shrink-0">
+          שאלה {qNum}
+        </span>
+        <span className="flex-1 font-bold text-stone-800 text-sm md:text-base leading-relaxed whitespace-pre-line">
+          {question}
+        </span>
+        <span className="bg-orange-100 text-orange-900 px-3 py-1 rounded-full text-xs font-black shrink-0 self-start">
+          {points} נק'
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-2.5 mb-4">
+        {options.map((opt, i) => {
+          let cls = 'text-right p-3.5 rounded-xl border-2 text-sm leading-relaxed transition-all ';
+          if (!submitted) {
+            cls += selected === i
+              ? 'bg-yellow-50 border-yellow-400 font-bold text-yellow-900 shadow-sm'
+              : 'bg-stone-50 border-stone-200 hover:bg-yellow-50/50 cursor-pointer hover:border-yellow-300';
+          } else {
+            if (i === correctIndex)     cls += 'bg-lime-50 border-lime-500 font-bold text-lime-900';
+            else if (i === selected)    cls += 'bg-rose-50 border-rose-400 font-bold text-rose-900';
+            else                        cls += 'bg-stone-50/30 border-stone-100 opacity-50 text-stone-400';
+          }
+          return (
+            <button key={i} className={cls} onClick={() => !submitted && setSelected(i)} disabled={submitted}>
+              <span className="font-black text-stone-400 ml-2">{['א', 'ב', 'ג', 'ד'][i]}.</span> {opt}
             </button>
           );
         })}
       </div>
 
-      {!isSubmitted && (
-        <button onClick={handleSubmit} disabled={selectedOption === null} className="px-6 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors disabled:bg-stone-400 text-sm md:text-base shadow-sm">
+      {!submitted && (
+        <button
+          onClick={submit}
+          disabled={selected === null}
+          className="px-7 py-2.5 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 disabled:bg-stone-300 transition-colors shadow-sm text-sm"
+        >
           בדוק תשובה
         </button>
       )}
 
-      {isSubmitted && (
-        <div className={`mt-4 p-4 rounded-lg border-r-8 ${isCorrect ? 'bg-lime-50 border-lime-600' : 'bg-rose-50 border-rose-500'}`}>
-          <h4 className={`font-bold mb-1 text-base md:text-lg flex items-center gap-2 ${isCorrect ? 'text-lime-900' : 'text-rose-900'}`}>
-            {isCorrect ? 'כל הכבוד! תשובה נכונה.' : 'תשובה שגויה. הסבר:'}
-            {isCorrect && <span className="bg-lime-200 text-lime-800 text-xs px-2 py-0.5 rounded-full">+{points} נק'</span>}
-          </h4>
-          <div className="text-stone-800 text-sm md:text-base whitespace-pre-line leading-relaxed">{explanation}</div>
+      {submitted && (
+        <div className={cx(
+          'mt-4 p-4 rounded-2xl border-2',
+          isCorrect ? 'bg-lime-50 border-lime-400' : 'bg-rose-50 border-rose-300'
+        )}>
+          <div className={cx('font-black mb-2', isCorrect ? 'text-lime-800' : 'text-rose-800')}>
+            {isCorrect ? '✅ תשובה נכונה! כל הכבוד.' : '❌ תשובה שגויה — הסבר:'}
+          </div>
+          <div className="text-stone-700 text-sm leading-relaxed font-medium whitespace-pre-line">
+            {explanation}
+          </div>
         </div>
       )}
     </div>
   );
 };
 
-// --- Pipette Component ---
-const Pipette = ({ activeLiquid }) => {
-  const isVisible = activeLiquid !== null;
-  const liquidColor = activeLiquid === 'soap' ? 'bg-yellow-300' : (activeLiquid === 'h2o2' || activeLiquid === 'water') ? 'bg-sky-300' : 'bg-blue-100';
-  
+// =========================
+// משורה
+// =========================
+const MeasuringCylinder = ({ label, volume, isVisible }) => {
+  const maxVol = 2.5;
+  const heightPct = volume > 0 ? (volume / maxVol) * 100 : 0;
   return (
-    <div className={`absolute -top-16 transition-all duration-500 z-40 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
-      <div className="flex flex-col items-center">
-        <div className="w-5 h-6 bg-red-700 rounded-t-full rounded-b-sm z-10 shadow-sm border border-red-900"></div>
-        <div className="w-1.5 h-10 bg-white/70 border-x border-b border-stone-400 rounded-b-sm relative overflow-hidden shadow-sm -mt-0.5">
-          <div className={`absolute bottom-0 w-full transition-all duration-[1500ms] ease-linear ${isVisible ? 'h-0' : 'h-full'} ${liquidColor}`}></div>
+    <div className={cx('flex flex-col items-center transition-all duration-700', isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8')}>
+      <div className="text-xs font-black text-amber-900 mb-2 bg-white px-2.5 py-1 rounded-full shadow-sm border border-stone-200">
+        משורה {label}
+      </div>
+      <div className="relative w-11 h-36 border-x-[3px] border-b-[3px] border-stone-400 bg-white/80 flex flex-col justify-end overflow-hidden rounded-b-lg shadow-inner">
+        <div className="absolute inset-y-1 left-0 w-2 flex flex-col justify-between py-1 z-10">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="w-full border-t border-stone-300" />
+          ))}
         </div>
-        {isVisible && <div className={`absolute w-1 h-2 rounded-full ${liquidColor} animate-pipette-drop`} style={{ bottom: '-8px' }}></div>}
+        <div
+          className="w-full bg-amber-300 border-t-4 border-amber-400 transition-all duration-[1800ms] ease-out"
+          style={{ height: isVisible ? `${heightPct}%` : '0%' }}
+        />
+      </div>
+      <div className="mt-2.5 font-black text-amber-900 bg-amber-100 px-3 py-1.5 rounded-full text-xs border border-amber-300 shadow-sm">
+        {volume} מ"ל
       </div>
     </div>
   );
 };
 
-// --- Part A Component ---
-const PartA = ({ onAnswer }) => {
-  const [stage, setStage] = useState(0);
-  const [showFoam, setShowFoam] = useState(false);
-  const [showBubbles, setShowBubbles] = useState(false);
-  const [animatingPipette, setAnimatingPipette] = useState(null);
-  const [isBtnDisabled, setIsBtnDisabled] = useState(false);
+// =========================
+// פסקת הנחיות שלב
+// =========================
+const PhaseText = ({ text }) => (
+  <div className="bg-amber-100 text-amber-950 rounded-2xl px-6 py-3.5 font-bold text-sm md:text-base text-center mb-8 border border-amber-300 shadow-sm">
+    {text}
+  </div>
+);
 
-  useEffect(() => {
-    let timerFoam, timerBubbles;
-    if (stage === 2) {
-      setShowBubbles(true);
-      timerFoam = setTimeout(() => setShowFoam(true), 1200);
-      timerBubbles = setTimeout(() => setShowBubbles(false), 6000);
-    } else {
-      setShowBubbles(false);
-      setShowFoam(false);
-    }
-    return () => { clearTimeout(timerFoam); clearTimeout(timerBubbles); };
-  }, [stage]);
-
-  const handleStage1 = () => {
-    setIsBtnDisabled(true); setAnimatingPipette('soap');
-    setTimeout(() => setStage(1), 600); 
-    setTimeout(() => { setAnimatingPipette(null); setIsBtnDisabled(false); }, 2000); 
+// =========================
+// כפתורי שלב
+// =========================
+const StepBtn = ({ label, onClick, disabled, color = 'stone' }) => {
+  const colors = {
+    amber:   'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300',
+    sky:     'bg-sky-100 hover:bg-sky-200 text-sky-900 border-sky-300',
+    orange:  'bg-orange-400 hover:bg-orange-500 text-orange-950 border-orange-500',
+    blue:    'bg-blue-200 hover:bg-blue-300 text-blue-950 border-blue-400',
+    emerald: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border-emerald-400',
+    lime:    'bg-lime-400 hover:bg-lime-500 text-lime-950 border-lime-600',
+    rose:    'bg-stone-800 hover:bg-stone-900 text-white border-stone-700',
+    stone:   'bg-stone-200 hover:bg-stone-300 text-stone-900 border-stone-400',
   };
-
-  const handleStage2 = () => {
-    setIsBtnDisabled(true); setAnimatingPipette('h2o2');
-    setTimeout(() => setStage(2), 600);
-    setTimeout(() => { setAnimatingPipette(null); setIsBtnDisabled(false); }, 2000);
-  };
-
-  const generateBubbles = (intensity) => {
-    return Array.from({ length: intensity }).map((_, i) => (
-      <div key={i} className="bubble z-20" style={{ width: `${Math.random()*6+3}px`, height: `${Math.random()*6+3}px`, left: `${Math.random()*80+10}%`, animationDuration: `${Math.random()*1.5+1}s`, animationDelay: `${Math.random()*2}s` }} />
-    ));
-  };
-
-  const renderFoam = (sizeClass) => (
-    <div className={`foam-layer ${sizeClass} overflow-hidden`} style={{ bottom: '52%' }}>
-      {[...Array(50)].map((_, i) => (
-        <div key={i} className="absolute bg-white rounded-full border border-stone-200 shadow-sm" style={{ width: `${Math.random()*10+5}px`, height: `${Math.random()*10+5}px`, top: `${Math.random()*110 - 5}%`, left: `${Math.random()*120 - 10}%`, opacity: 0.98 }} />
-      ))}
-    </div>
-  );
-
   return (
-    <div className="mb-8">
-      <h2 className="text-xl md:text-2xl font-bold mb-3 text-amber-900 border-b-4 border-amber-200 pb-1.5">חלק א' - הכרת שיטה לבדיקת תהליך של פירוק מי חמצן</h2>
-      <div className="bg-amber-50/70 p-4 rounded-xl mb-4 border-r-8 border-amber-400 shadow-sm text-sm md:text-base text-stone-800 leading-relaxed">
-        <strong>תיאור הניסוי:</strong> התלמידים הכינו שלוש מבחנות (קטלאז, רסק עדשים, מים) והוסיפו לכל אחת מי סבון ומי חמצן כדי לבדוק היווצרות בועות או קצף.
-      </div>
-
-      <div className="bg-white border-2 border-stone-100 p-4 rounded-xl mb-6 flex flex-col items-center shadow-md">
-        <h3 className="font-bold mb-4 text-stone-700 text-sm md:text-base">אנימציה חלק א'</h3>
-        
-        <div className="flex justify-center items-end gap-6 md:gap-12 mb-4 h-48 relative pt-20 mt-4 w-full">
-          {[
-            { name: 'קטלאז', color: 'bg-blue-100/80', foam: 'foam-large', count: 35 },
-            { name: 'עדשים', color: 'bg-blue-100/60', foam: 'foam-medium', count: 18, isLentil: true },
-            { name: 'מים', color: 'bg-blue-50' }
-          ].map((tube, idx) => (
-            <div key={idx} className="flex flex-col items-center relative">
-              <Pipette activeLiquid={animatingPipette} />
-              <div className="w-10 md:w-12 h-28 border-x-4 border-b-4 border-stone-400 relative overflow-hidden bg-white shadow-inner rounded-b-xl">
-                <div className={`absolute bottom-0 w-full transition-all duration-1000 border-t-2 border-stone-200 z-10 ${tube.isLentil && stage === 0 ? 'bg-amber-100' : tube.color}`} 
-                     style={{ height: stage === 0 ? '25%' : stage === 1 ? '48%' : '52%' }}>
-                  {tube.isLentil && <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-6 h-3 bg-amber-800/50 rounded-full blur-[1px]"></div>}
-                </div>
-                {idx < 2 && showFoam && renderFoam(tube.foam)}
-                {idx < 2 && showBubbles && generateBubbles(tube.count)}
-              </div>
-              <span className="mt-1 text-xs md:text-sm font-bold text-stone-700">{tube.name}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap justify-center gap-1.5 md:gap-2 w-full max-w-md mt-2">
-          <button disabled={stage >= 1 || isBtnDisabled} onClick={handleStage1} className="flex-1 py-1.5 md:py-2 bg-stone-300 hover:bg-stone-400 text-stone-900 font-bold rounded-lg shadow text-xs md:text-sm disabled:opacity-50 border-b-2 border-stone-500">שלב 1: מי סבון</button>
-          <button disabled={stage !== 1 || isBtnDisabled} onClick={handleStage2} className="flex-1 py-1.5 md:py-2 bg-stone-600 hover:bg-stone-700 text-white font-bold rounded-lg shadow text-xs md:text-sm disabled:opacity-50 border-b-2 border-stone-800">שלב 2: מי חמצן</button>
-          <button onClick={() => {setStage(0); setShowFoam(false); setShowBubbles(false);}} className="px-3 py-1.5 md:py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-lg shadow text-xs md:text-sm border border-stone-300">איפוס</button>
-        </div>
-
-        <div className="mt-4 w-full">
-          <table className="w-full text-center border-collapse bg-white rounded-lg overflow-hidden shadow-sm text-xs md:text-sm">
-            <thead className="bg-amber-100 text-amber-900">
-              <tr className="border-b border-amber-200">
-                <th className="p-2 border-x border-amber-200">תכולת המבחנה</th>
-                <th className="p-2 border-x border-amber-200">נפח מי סבון (מ"ל)</th>
-                <th className="p-2 border-x border-amber-200">נפח מי חמצן (מ"ל)</th>
-              </tr>
-            </thead>
-            <tbody className="text-stone-700">
-              <tr className="border-b border-stone-100"><td className="p-2 border-x font-bold">קטלאז (1 מ"ל)</td><td className="p-2 border-x">{stage >= 1 ? '4' : '-'}</td><td className="p-2 border-x">{stage >= 2 ? '1' : '-'}</td></tr>
-              <tr className="border-b border-stone-100"><td className="p-2 border-x font-bold">רסק עדשים</td><td className="p-2 border-x">{stage >= 1 ? '4' : '-'}</td><td className="p-2 border-x">{stage >= 2 ? '1' : '-'}</td></tr>
-              <tr><td className="p-2 border-x font-bold">מים (1 מ"ל)</td><td className="p-2 border-x">{stage >= 1 ? '4' : '-'}</td><td className="p-2 border-x">{stage >= 2 ? '1' : '-'}</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <MultipleChoiceQnA 
-        qNum="1. א" 
-        points={4}
-        onAnswer={onAnswer}
-        question="מהי הכותרת המתאימה ביותר לטבלה המסכמת את מערך הניסוי שערכתם בחלק א'?" 
-        options={[
-          "השפעת ריכוז מי החמצן על קצב היווצרות הבועות במבחנות שונות.",
-          "בדיקת כמות המים המזוקקים הדרושה לפירוק האנזים קטלאז בסביבה סבונית.",
-          "השפעת חומרים שונים על פעילות הקטלאז (היווצרות בועות/קצף).",
-          "קצב יצירת קצף סבון בנוכחות תמיסות שונות של מלח ורסק עדשים."
-        ]}
-        correctAnswerIndex={2}
-        explanation={`הניסוי בודק השפעה של חומרים שונים (קטלאז, רסק עדשים ומים כבקרה) על התגובה של פירוק מי חמצן.`} 
-      />
-
-      <MultipleChoiceQnA 
-        qNum="1. ב" 
-        points={4}
-        onAnswer={onAnswer}
-        question="על סמך התוצאות שהתקבלו באנימציה של הניסוי, מהו הדירוג הנכון של המבחנות לפי כמות הקצף שנוצר בהן (מהכמות הגדולה ביותר לכמות הקטנה ביותר או היעדר קצף)?" 
-        options={[
-          "מים > רסק עדשים > קטלאז",
-          "רסק עדשים > קטלאז > מים",
-          "קטלאז > מים > רסק עדשים",
-          "קטלאז > רסק עדשים > מים"
-        ]}
-        correctAnswerIndex={3}
-        explanation={`קטלאז > רסק עדשים > מים. במבחנת הקטלאז נוצרה כמות הקצף הגדולה ביותר. במבחנת רסק העדשים נוצר קצף, אך בכמות קטנה יותר בהשוואה לקטלאז. במבחנת המים לא נוצר קצף כלל (0).`} 
-      />
-      
-      <MultipleChoiceQnA 
-        qNum="2. א" 
-        points={5}
-        onAnswer={onAnswer}
-        question="מהו ההסבר הנכון לתוצאות שהתקבלו בכל אחת משלוש המבחנות?" 
-        options={[
-          "הסבון פירק את הקטלאז במבחנות והוביל ליצירת בועות.",
-          "קטלאז מעכב את פירוק מי החמצן במבחנה. במים המזוקקים אין קטלאז כלל, ולכן נוצרו שם בועות חמצן באופן טבעי.",
-          "קטלאז מזרז פירוק מי חמצן. במבחנת הקטלאז ובעדשים (שמכילות קטלאז) נוצרו בועות.",
-          "נבטי העדשים מפרקים את הקטלאז במבחנה ולכן ראינו פחות בועות."
-        ]}
-        correctAnswerIndex={2}
-        explanation={`קטלאז מזרז פירוק מי חמצן למים ולחמצן. החמצן שנוצר משתחרר בצורת בועות/קצף בנוכחות הסבון.`} 
-      />
-
-      <MultipleChoiceQnA 
-        qNum="2. ב" 
-        points={6}
-        onAnswer={onAnswer}
-        question='מה היו עשויות להיות התוצאות במבחנה המסומנת "עדשים" אילו תמיסת מי החמצן שהוספתם הייתה בריכוז גבוה יותר, ומהו ההסבר לכך?' 
-        options={[
-          "קצב יצירת הקצף היה איטי הרבה יותר בגלל עיכוב תחרותי.",
-          "לא היה נצפה כל שינוי משמעותי בתוצאות בגלל נוכחות הסבון.",
-          "נוצרו פחות בועות חמצן בגלל דנטורציה של האנזים בריכוז גבוה.",
-          "קצב הפירוק היה מהיר יותר ונוצרו יותר בועות (עד לרוויה)."
-        ]}
-        correctAnswerIndex={3}
-        explanation={`עלייה בריכוז סובסטרט (מי חמצן), גורמת לעליה בסיכויי המפגשים בין אנזים לסובסטרט, וקצב הפירוק מהיר יותר.`} 
-      />
-
-      <MultipleChoiceQnA 
-        qNum="3." 
-        points={6}
-        onAnswer={onAnswer}
-        question="נתון: תלמיד קיבל כלי ובו 10 מ''ל תמיסת מלח בריכוז 10%. התלמיד הוסיף לכלי 30 מ''ל מים מזוקקים. מהו ריכוז התמיסה שהתקבלה?" 
-        options={["2.5%", "5%", "7.5%", "10%"]}
-        correctAnswerIndex={0}
-        explanation={`התשובה: 2.5%. 
-פירוט החישוב לפי הנוסחה C₁ × V₁ = C₂ × V₂:
-C₁ = הריכוז ההתחלתי (10%)
-V₁ = הנפח ההתחלתי (10 מ"ל)
-C₂ = הריכוז הסופי (הנעלם X)
-V₂ = הנפח הסופי הכולל (10 מ"ל + 30 מ"ל מים = 40 מ"ל)
-הצבה בנוסחה: 10 × 10 = X × 40
-100 = 40X
-X = 2.5%
-
-או הסבר מילולי: ל-10 מ"ל תמיסת מלח בריכוז 10% הוסיפו 30 מ"ל מים, כלומר מהלו את התמיסה פי 4 (הנפח הסופי הוא 40 מ"ל), ולכן הריכוז ירד פי 4.`} 
-      />
-    </div>
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={cx(
+        'px-4 py-2 rounded-xl font-bold border-2 text-xs transition-colors shadow-sm disabled:opacity-35 disabled:cursor-not-allowed',
+        colors[color] || colors.stone
+      )}
+    >
+      {label}
+    </button>
   );
 };
 
-// --- Part B Component ---
-const PartB = ({ onAnswer }) => {
-  const [stageB, setStageB] = useState(0); 
-  const [animatingPipettesB, setAnimatingPipettesB] = useState(false);
-  const [isBtnDisabledB, setIsBtnDisabledB] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
-  const [round, setRound] = useState(0);
-  const [timers, setTimers] = useState({ a: 0, b: 0, c: 0, d: 0 });
-  const [diskStates, setDiskStates] = useState({ a: 15, b: 15, c: 15, d: 15 });
-  const [isRising, setIsRising] = useState({ a: false, b: false, c: false, d: false });
-  const [results, setResults] = useState({ a: [], b: [], c: [], d: [] });
+// =========================
+// חלק א'
+// =========================
+const PartA = ({ onScore }) => {
+  const [phase, setPhase] = useState(0);
 
-  const timesByRound = [{ a: 27, b: 33, c: 35, d: 45 }, { a: 25, b: 32, c: 40, d: 45 }, { a: 31, b: 30, c: 34, d: 45 }];
-
-  const handleStage1B = () => setStageB(1);
-  const handleStage2B = () => {
-    setIsBtnDisabledB(true); setAnimatingPipettesB(true);
-    setTimeout(() => setStageB(2), 600);
-    setTimeout(() => { setAnimatingPipettesB(false); setIsBtnDisabledB(false); }, 2000);
-  };
-  const handleStage3B = () => setStageB(3);
-  
-  const handleStage4B = () => {
-    if (stageB < 4) setStageB(4);
-    if (!isRunning && round < 3) setIsRunning(true);
-  };
-
-  useEffect(() => {
-    let intervals = [];
-    if (isRunning && round < 3 && stageB >= 4) {
-      setIsRising({ a: false, b: false, c: false, d: false });
-      setDiskStates({ a: 15, b: 15, c: 15, d: 15 });
-      setTimers({ a: 0, b: 0, c: 0, d: 0 });
-      const currentTimes = timesByRound[round];
-      let completed = 0;
-      
-      ['a', 'b', 'c', 'd'].forEach(tube => {
-        const duration = currentTimes[tube];
-        let tick = 0;
-        const interval = setInterval(() => {
-          tick++; 
-          setTimers(prev => ({...prev, [tube]: tick}));
-          
-          // שחרור הדיסקיות מיד בהתחלה
-          if (tick === 1) {
-             setDiskStates(prev => ({...prev, [tube]: 85}));
-          }
-
-          // הדיסקיות הגיעו לקרקעית - מתחילות לעלות
-          if (tick === 5) {
-             if (tube !== 'd') {
-               setIsRising(prev => ({...prev, [tube]: true}));
-               setDiskStates(prev => ({...prev, [tube]: 15}));
-             }
-          }
-
-          // הגעה לזמן היעד המדויק
-          if (tick >= duration || (tube === 'd' && tick >= 40)) {
-            clearInterval(interval); 
-            completed++;
-            if (tube !== 'd') {
-              setIsRising(prev => ({...prev, [tube]: false}));
-              setDiskStates(prev => ({...prev, [tube]: 15})); 
-            }
-            if (completed === 4) {
-              setTimeout(() => {
-                setResults(p => ({ 
-                  a: [...p.a, currentTimes.a], 
-                  b: [...p.b, currentTimes.b], 
-                  c: [...p.c, currentTimes.c], 
-                  d: [...p.d, 'לא צפה'] 
-                }));
-                setRound(r => r + 1); 
-                setIsRunning(false);
-                // החזרת הדיסקיות למעלה (כולל ד') לקראת ההטלה הבאה
-                setIsRising({ a: false, b: false, c: false, d: false });
-                setDiskStates({ a: 15, b: 15, c: 15, d: 15 });
-              }, 1200);
-            }
-          }
-        }, 100);
-        intervals.push(interval);
-      });
-    }
-    return () => intervals.forEach(clearInterval);
-  }, [isRunning, round, stageB]);
-
-  const resetB = () => {
-    setIsRunning(false); setRound(0); setStageB(0); setResults({ a: [], b: [], c: [], d: [] });
-    setTimers({ a: 0, b: 0, c: 0, d: 0 }); setDiskStates({ a: 15, b: 15, c: 15, d: 15 });
-    setIsRising({ a: false, b: false, c: false, d: false });
-  };
-
-  const getAvg = (arr) => arr.includes('לא צפה') ? 'לא צפה' : Math.round(arr.reduce((a,b)=>a+b,0)/arr.length);
-
-  const getStageBText = () => {
-    const texts = [
-      "לחצו על '1: סימון' להתחלת בניית מערך הניסוי.",
-      "שלב 1: סימון המבחנות בקו המרוחק 3 ס\"מ משפת המבחנה.",
-      "שלב 2: הוספת מי חמצן (א-ג) ומים (ד) עד לקו בעזרת פיפטה.",
-      "שלב 3: טבילת דיסקיות נייר במיצויים של עדשים שהושרו בריכוזי מלח שונים (0%,2%,4%) והנחת הדיסקיות על פני הנוזל.",
-      "שלב 4: שחרור הדיסקיות שלוש פעמים וחישוב ממוצע משך זמן הציפה."
-    ];
-    return texts[stageB] || "";
-  };
-
-  const renderDiskBubbles = (tubeId) => {
-    if (tubeId === 'd' || !isRising[tubeId]) return null;
-    return (
-      <div className="absolute -bottom-3 w-full h-8 pointer-events-none">
-        {[...Array(12)].map((_, i) => (
-          <div key={i} className="bubble" style={{ 
-            width: `${3 + (i%3)}px`, height: `${3 + (i%3)}px`, 
-            left: `${-5 + (i*8)}%`, bottom: '0px', 
-            animationDuration: `${0.3 + (i%3)*0.1}s`, 
-            animationDelay: `${(i%2)*0.1}s` 
-          }}/>
-        ))}
-      </div>
-    );
-  };
+  const phaseLabels = [
+    'לחצו על השלבים כדי להתחיל את הניסוי.',
+    'שלב 1: הוספת 2 מ"ל תמיסת ג\'לטין לכל אחת ממבחנות A, B, C.',
+    'שלב 2: הוספת 1 מ"ל טריפסין ל-A | 1 מ"ל מיצוי אננס ל-B | 1 מ"ל מים ל-C.',
+    'שלב 3: ערבוב כל המבחנות בטלטול קל.',
+    'שלב 4: הכנסת המבחנות לאמבט 1 (37°C–40°C) למשך 5 דקות — פעילות אנזימטית.',
+    'שלב 5: העברה לאמבט 2 (קירור, מתחת ל-10°C) למשך 8 דקות — קרישת ג\'לטין.',
+    'שלב 6: הטיית כל המבחנות בזווית 45 מעלות כדי לבדוק באיזה מבחנה נקרש הנוזל.',
+  ];
 
   return (
-    <div className="mb-10">
-      <h2 className="text-xl md:text-2xl font-bold mb-4 text-amber-900 border-b-4 border-amber-200 pb-2">חלק ב' - בדיקת פעילות קטלאז מתאי נבטי עדשים</h2>
-      
-      <div className="bg-amber-50/70 p-4 md:p-5 rounded-xl mb-6 border-r-4 border-amber-400 shadow-sm">
-        <h3 className="font-bold text-amber-900 mb-2 text-base md:text-lg">מהלך הניסוי של התלמידים:</h3>
-        <p className="text-stone-700 leading-relaxed text-sm md:text-base">
-          התלמידים עבדו עם נבטי עדשים שהונבטו מראש במשך יומיים בשלוש תמיסות של המלח נתרן כלורי (NaCl) בריכוזים: 0%, 2%, ו-4%. התלמידים כתשו את הנבטים מכל ריכוז בנפרד (יחד עם תמיסת בופר) וסיננו אותם לקבלת מיצויים.
+    <section className="mb-16">
+      <h2 className="text-xl md:text-2xl font-black mb-6 text-amber-900 border-b-4 border-amber-300 pb-2 inline-block">
+        חלק א' — השפעת מיצוי אננס על החלבון ג'לטין
+      </h2>
+
+      <div className="bg-white p-5 rounded-2xl border border-amber-100 mb-6 text-stone-800 text-sm md:text-base leading-relaxed font-medium shadow-sm">
+        <p className="mb-3">
+          בתעשיית המזון משתמשים בחלבון ג'לטין להכנת קינוחים, שכן הג'לטין נקרש בטמפרטורה הנמוכה מ-10°C ויוצר מרקם ג'לי.
+          בטמפרטורות נמוכות נוצרים קשרים בין שרשרות החלבון עד שנוצר מבנה רשת, כפי שמתואר באיור 1.
+        </p>
+        <p>
+          בניסוי זה נבדוק את השפעת אנזימים מפרקי חלבון (פרוטאזות) על תהליך הקרישה.
         </p>
       </div>
 
-      <div className="bg-amber-100 p-4 md:p-5 rounded-xl mb-6 border-r-4 border-amber-500 shadow-sm">
-        <h3 className="font-bold text-amber-900 mb-1 text-base md:text-lg">לידיעתכם 1:</h3>
-        <p className="text-stone-800 text-sm md:text-base">
-          בתמיסה מימית המלח נתרן כלורי (NaCl) מתפרק ליונים. יוני הנתרן חודרים לתאים ומשפיעים על המבנה המרחבי של החלבונים.
-        </p>
+      {/* תמונות וקטוריות מדויקות (אננס + איור 1) */}
+      <div className="bg-white p-6 rounded-2xl border-2 border-amber-100 mb-6 max-w-4xl mx-auto shadow-sm flex flex-col md:flex-row items-center justify-center gap-8">
+        <div className="flex-shrink-0 flex justify-center w-32 md:w-48">
+          <PineappleSVG />
+        </div>
+        <div className="flex-1 w-full max-w-lg flex justify-center">
+          <Figure1 />
+        </div>
       </div>
 
-      <div className="bg-white border-2 border-stone-100 p-4 md:p-5 rounded-2xl mb-6 flex flex-col items-center shadow-md">
-        <h3 className="font-bold mb-4 text-stone-700 text-sm md:text-base text-center">אנימציית הניסוי: מדידת זמן הציפה</h3>
-        
-        <div className="flex justify-center items-end gap-5 md:gap-10 mb-4 h-48 relative pt-24 mt-8 w-full">
-          {[{id:'a', label:'א', ex:'0%'}, {id:'b', label:'ב', ex:'2%'}, {id:'c', label:'ג', ex:'4%'}, {id:'d', label:'ד', ex:'0%', type:'water'}].map(t => (
-            <div key={t.id} className="flex flex-col items-center relative">
-              <Pipette activeLiquid={animatingPipettesB ? (t.type === 'water' ? 'water' : 'h2o2') : null} />
-              
-              {stageB >= 3 && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[120%] text-[10px] md:text-xs font-extrabold text-amber-900 whitespace-nowrap z-50">
-                  מיצוי {t.ex}
-                </div>
-              )}
-              
-              <div className="w-12 md:w-14 h-32 border-x-4 border-b-4 border-stone-400 relative bg-white overflow-hidden rounded-b-xl shadow-inner">
-                <div className={`absolute w-full h-0.5 bg-red-600/80 z-20 transition-opacity duration-500 ${stageB >= 1 ? 'opacity-100' : 'opacity-0'}`} style={{ top: '15%' }}></div>
-                <div className={`absolute bottom-0 w-full ${t.type==='water'?'bg-blue-50/60':'bg-blue-100/60'} border-t-2 border-stone-200 z-10 transition-all duration-1000`} style={{ height: stageB >= 2 ? '85%' : '0%' }}></div>
-                
-                <div className={`disk absolute w-8 md:w-10 h-1.5 bg-stone-700 rounded-full left-1/2 -translate-x-1/2 z-30 transition-all ${stageB >= 3 ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} 
-                     style={{ 
-                       top: `${diskStates[t.id]}%`, 
-                       transition: `top ${isRising[t.id] ? ((timesByRound[round]?.[t.id] || 40) - 5) * 0.1 + 's' : '0.4s'} linear, opacity 0.5s` 
-                     }}>
-                   {renderDiskBubbles(t.id)}
-                </div>
-              </div>
-              <span className="mt-1 text-xs md:text-sm font-bold text-stone-800">מבחנה {t.label}</span>
-              <span className={`text-xs md:text-sm font-mono mt-0.5 text-stone-900 bg-stone-100 px-1.5 py-0.5 rounded border border-stone-300 transition-opacity ${stageB >= 4 ? 'opacity-100' : 'opacity-0'}`}>
-                {t.id === 'd' && timers[t.id] >= 40 ? 'לא צפה' : `${timers[t.id]}s`}
-              </span>
-            </div>
-          ))}
+      <InfoBox title="💡 לידיעתך:">
+        טריפסין הוא אנזים המזרז פירוק חלבונים, ובהם ג'לטין, לשרשרות קצרות הנקראות{' '}
+        <strong>פפטידים. הפפטידים אינם נקרשים בטמפרטורה הנמוכה מ-10°C</strong>{' '}
+        (שכן הם קצרים מדי ליצירת מבנה רשת).
+      </InfoBox>
+
+      <Figure2 />
+
+      {/* מעבדה */}
+      <div className="bg-white border-2 border-amber-200 rounded-3xl shadow-md p-5 md:p-8 mb-8">
+        <h3 className="font-black text-amber-900 text-lg mb-5 text-center">מעבדת הניסוי — חלק א'</h3>
+        <PhaseText text={phaseLabels[phase]} />
+
+        <BathContainer phase={phase} bathPhase1={4} bathPhase2={5}>
+          {/* C — מים, נקרש */}
+          <Tube label="C" phase={phase}
+            pour1Phase={1} pour1Color="bg-amber-200"
+            pour2Phase={2} pour2Color="bg-blue-400"
+            mixPhase={3} tiltPhase={6}
+            gelHeight={60}
+            contents={['2 מ"ל ג\'לטין', '1 מ"ל מים']}
+          />
+          {/* B — אננס, לא נקרש */}
+          <Tube label="B" phase={phase}
+            pour1Phase={1} pour1Color="bg-amber-200"
+            pour2Phase={2} pour2Color="bg-yellow-400"
+            mixPhase={3} tiltPhase={6}
+            gelHeight={0}
+            contents={['2 מ"ל ג\'לטין', '1 מ"ל מיצוי אננס']}
+          />
+          {/* A — טריפסין, לא נקרש */}
+          <Tube label="A" phase={phase}
+            pour1Phase={1} pour1Color="bg-amber-200"
+            pour2Phase={2} pour2Color="bg-sky-300"
+            mixPhase={3} tiltPhase={6}
+            gelHeight={0}
+            contents={['2 מ"ל ג\'לטין', '1 מ"ל טריפסין']}
+          />
+        </BathContainer>
+
+        <div className="flex flex-wrap justify-center gap-2.5 mt-8">
+          <StepBtn label="1: ג'לטין" onClick={() => setPhase(1)} disabled={phase >= 1} color="amber" />
+          <StepBtn label="2: הוספת חומרים" onClick={() => setPhase(2)} disabled={phase < 1 || phase >= 2} color="sky" />
+          <StepBtn label="3: ערבוב" onClick={() => setPhase(3)} disabled={phase < 2 || phase >= 3} color="stone" />
+          <StepBtn label="4: אמבט חם" onClick={() => setPhase(4)} disabled={phase < 3 || phase >= 4} color="orange" />
+          <StepBtn label="5: קירור" onClick={() => setPhase(5)} disabled={phase < 4 || phase >= 5} color="blue" />
+          <StepBtn label="6: הטיה" onClick={() => setPhase(6)} disabled={phase < 5 || phase >= 6} color="emerald" />
+          <StepBtn label="↺ איפוס" onClick={() => setPhase(0)} color="rose" />
         </div>
 
-        <div className="bg-orange-50 px-4 py-2 rounded-lg mb-3 mt-4 text-center border border-amber-200 w-full max-w-2xl min-h-[2.5rem] flex items-center justify-center shadow-sm">
-          <p className="text-sm md:text-base text-amber-900 font-bold leading-tight">{getStageBText()}</p>
-        </div>
-
-        <div className="flex flex-wrap justify-center gap-1.5 md:gap-2 w-full max-w-xl py-1">
-          <button disabled={stageB >= 1 || isBtnDisabledB} onClick={handleStage1B} className="w-[31%] md:w-auto md:flex-1 py-2 md:py-1.5 bg-stone-300 hover:bg-stone-400 text-stone-900 font-bold rounded-lg shadow-sm text-[11px] md:text-sm leading-tight whitespace-normal md:whitespace-nowrap disabled:opacity-50 border-b-2 border-stone-500">1: סימון</button>
-          <button disabled={stageB !== 1 || isBtnDisabledB} onClick={handleStage2B} className="w-[31%] md:w-auto md:flex-1 py-2 md:py-1.5 bg-stone-300 hover:bg-stone-400 text-stone-900 font-bold rounded-lg shadow-sm text-[11px] md:text-sm leading-tight whitespace-normal md:whitespace-nowrap disabled:opacity-50 border-b-2 border-stone-500">2: מי חמצן ומים</button>
-          <button disabled={stageB !== 2 || isBtnDisabledB} onClick={handleStage3B} className="w-[31%] md:w-auto md:flex-1 py-2 md:py-1.5 bg-stone-500 hover:bg-stone-600 text-white font-bold rounded-lg shadow-sm text-[11px] md:text-sm leading-tight whitespace-normal md:whitespace-nowrap disabled:opacity-50 border-b-2 border-stone-700">3: דיסקיות</button>
-          <button disabled={stageB < 3 || isRunning || round >= 3} onClick={handleStage4B} className="w-[47%] md:w-auto md:flex-1 py-2 md:py-1.5 bg-stone-800 hover:bg-stone-900 text-white font-bold rounded-lg shadow-md text-[11px] md:text-sm leading-tight whitespace-normal md:whitespace-nowrap disabled:opacity-50 border-b-2 border-black">
-            {round >= 3 ? "סיום ניסוי" : stageB < 4 ? "4: שחרור" : `שחרור (${round+1}/3)`}
-          </button>
-          <button onClick={resetB} className="w-[47%] md:w-auto md:px-3 py-2 md:py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold rounded-lg shadow border border-stone-300 text-[11px] md:text-sm leading-tight">איפוס</button>
-        </div>
-
-        <div className="mt-4 w-full">
-          <h4 className="font-bold mb-2 text-center text-amber-900 text-sm md:text-base">טבלה 2: סיכום המדידות (משך זמן הציפה בשניות)</h4>
-          <table className="w-full text-center border-collapse bg-white rounded-lg overflow-hidden shadow-sm text-[11px] md:text-sm">
-            <thead className="bg-amber-100 text-amber-900">
-              <tr className="border-b border-amber-200">
-                <th className="p-1.5 md:p-2 border-x border-amber-200" rowSpan="2">מבחנה</th>
-                <th className="p-1.5 md:p-2 border-x border-amber-200" rowSpan="2">ריכוז תמיסת מלח בו הושרו העדשים (%)</th>
-                <th className="p-1.5 md:p-2 border-x border-amber-200" rowSpan="2">מי חמצן (-/+)</th>
-                <th className="p-1 md:p-2 border-x border-amber-200" colSpan="3">מדידות זמן הציפה (שניות)</th>
-                <th className="p-1.5 md:p-2 border-x border-amber-200 bg-amber-200" rowSpan="2">ממוצע (שניות)</th>
-              </tr>
-              <tr className="bg-amber-50">
-                <th className="p-1 border-x border-amber-200">מדידה I</th>
-                <th className="p-1 border-x border-amber-200">מדידה II</th>
-                <th className="p-1 border-x border-amber-200">מדידה III</th>
+        {/* טבלה 1 */}
+        <div className="mt-10 overflow-x-auto bg-amber-50/40 p-5 rounded-2xl border border-amber-100">
+          <h4 className="font-black text-center text-amber-900 mb-1 text-base">
+            טבלה 1
+          </h4>
+          <p className="text-center text-xs text-stone-500 mb-3">הטבלה מתמלאת אוטומטית לפי שלבי הניסוי</p>
+          <table className="w-full text-center border-collapse bg-white rounded-2xl overflow-hidden text-xs md:text-sm border border-amber-200 shadow-sm">
+            <thead className="bg-stone-100 text-stone-700 font-bold">
+              <tr>
+                <th className="p-2.5 border border-stone-200">מבחנה</th>
+                <th className="p-2.5 border border-stone-200">ג'לטין (מ"ל)</th>
+                <th className="p-2.5 border border-stone-200">מיצוי אננס (מ"ל)</th>
+                <th className="p-2.5 border border-stone-200">טריפסין (מ"ל)</th>
+                <th className="p-2.5 border border-stone-200">מים (מ"ל)</th>
+                <th className="p-2.5 border border-stone-200 bg-amber-100 text-amber-900 font-black">תוצאת קרישה</th>
               </tr>
             </thead>
-            <tbody>
-              {['a','b','c','d'].map((t, i) => (
-                <tr key={t} className="border-b border-stone-100">
-                  <td className="p-1.5 border-x font-bold uppercase">{['א','ב','ג','ד'][i]}</td>
-                  <td className="p-1.5 border-x">{[0,2,4,0][i]}</td>
-                  <td className="p-1.5 border-x font-bold">{i<3?'+':'-'}</td>
-                  <td className="p-1.5 border-x">{results[t][0] || '-'}</td>
-                  <td className="p-1.5 border-x">{results[t][1] || '-'}</td>
-                  <td className="p-1.5 border-x">{results[t][2] || '-'}</td>
-                  <td className="p-1.5 border-x bg-amber-50 font-bold text-amber-900">{results[t].length===3?getAvg(results[t]):'-'}</td>
+            <tbody className="text-stone-700 font-medium">
+              {[
+                { id: 'A', j: '2', p: '0', t: '1', w: '0', r: 'לא נקרש / −', rc: 'text-rose-600', show: true },
+                { id: 'B', j: '2', p: '1', t: '0', w: '0', r: 'לא נקרש / −', rc: 'text-rose-600', show: true },
+                { id: 'C', j: '2', p: '0', t: '0', w: '1', r: 'נקרש / +',    rc: 'text-lime-700', show: true },
+              ].map(row => (
+                <tr key={row.id} className="border-b border-amber-50 hover:bg-amber-50 transition-colors">
+                  <td className="p-2.5 border border-stone-100 font-black bg-stone-50">{row.id}</td>
+                  <td className="p-2.5 border border-stone-100">{phase >= 1 ? row.j : '—'}</td>
+                  <td className="p-2.5 border border-stone-100">{phase >= 2 ? row.p : '—'}</td>
+                  <td className="p-2.5 border border-stone-100">{phase >= 2 ? row.t : '—'}</td>
+                  <td className="p-2.5 border border-stone-100">{phase >= 2 ? row.w : '—'}</td>
+                  <td className={cx('p-2.5 border border-stone-100 font-bold', row.rc)}>
+                    {phase >= 6 ? row.r : '—'}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </div>
-      
-      <div className="bg-amber-100 p-4 md:p-5 rounded-xl mb-6 mt-6 border-r-4 border-amber-500 shadow-sm">
-        <h3 className="font-bold text-amber-900 mb-1 text-base md:text-lg">לידיעתכם 2:</h3>
-        <p className="text-stone-800 text-sm md:text-base">
-          דסקיות הנייר צפות בגלל שחרור של בועות גז.
-        </p>
-      </div>
 
-      <MultipleChoiceQnA 
-        qNum="4" 
-        points={5}
-        onAnswer={onAnswer}
-        question="בכל אחת מן המבחנות א-ד נערכו שלוש מדידות. מדוע חשוב לבצע חזרות בניסוי זה?" 
+      {/* שאלות חלק א */}
+      <MCQ qNum="61א" points={6} onScore={onScore}
+        question="מהי הכותרת המתאימה לטבלה 1?"
         options={[
-          "ביצוע חזרות מאפשר להקטין את ההשפעה של טעות מקרית או של תוצאה חריגה.",
-          "מטרתן להוכיח שציפת הדסקית מושפעת אך ורק מריכוז המלח ולא מכל גורם אחר.",
-          "הן מגדילות את כמות מי החמצן המפורקת באופן מצטבר לאורך כל הניסוי.",
-          "חזרות מונעות מהדסקית לספוג כמות עודפת של מים שעלולה להטות את הזמן."
+          "תיאור השפעת נפח המים, תמיסת הטריפסין ומיצוי האננס על קצב הקרישה של חלבון הג'לטין.",
+          "מערך הניסוי ותוצאות בדיקת קרישת הג'לטין בנוכחות אנזימים (טריפסין ומיצוי אננס) לעומת מים.",
+          "השפעת טמפרטורת האמבט החם (37 מעלות) וזמן השהייה בו על צבע תמיסת הג'לטין במבחנות השונות.",
+          "מעקב אחר שינוי נפח תמיסת הג'לטין במבחנות כתוצאה מהוספה של מיצוי אננס לאורך זמן ממושך.",
         ]}
-        correctAnswerIndex={0}
-        explanation={`ייתכן שבמדידה אחת נפלה טעות והיא אינה מייצגת / ביצוע חזרות מאפשר להקטין השפעה של תוצאה חריגה. הממוצע מייצג את התוצאות באופן מהימן.`} 
+        correctIndex={1}
+        explanation={`כותרת טבלה תקינה בביולוגיה צריכה לתאר את תוכן הטבלה (מערך הניסוי והתוצאות) ולכלול את המשתנה הבלתי תלוי (החומרים שהוספו - טריפסין/אננס/מים) והמשתנה התלוי (התוצאה הנמדדת - קרישת הג'לטין).`}
       />
 
-      <MultipleChoiceQnA 
-        qNum="5. א" 
-        points={4}
-        onAnswer={onAnswer}
-        question="מהי הכותרת המתאימה ביותר לטבלה 2?" 
+      <MCQ qNum="61ב" points={6} onScore={onScore}
+        question="על סמך תוצאות שלב 6, מה היה מצב הקרישה בכל אחת מהמבחנות A, B, C?"
         options={[
-          "השפעת ריכוז מי החמצן במבחנה על קצב פעילות האנזים קטלאז בזרעי שעועית.",
-          "השפעת ריכוז תמיסת המלח (NaCl) שבה הונבטו העדשים על קצב פעילות קטלאז.",
-          "משך זמן ציפת הדסקית כפונקציה של כמות מי הסבון שהוספה לכל מבחנה בניסוי.",
-          "בדיקת כמות המים המזוקקים הנדרשת לפירוק האנזים קטלאז בנבטי עדשים שונים."
+          "A - לא נקרש, B - לא נקרש, C - נקרש.",
+          "A - נקרש, B - לא נקרש, C - נקרש.",
+          "A - נקרש, B - נקרש, C - לא נקרש.",
+          "A - לא נקרש, B - נקרש, C - נקרש.",
         ]}
-        correctAnswerIndex={1}
-        explanation={`כותרת לטבלה צריכה לכלול שלושה מרכיבים: 1. התייחסות למשתנה הבלתי תלוי: ריכוז [תמיסת] מלח. 2. התייחסות למשתנה התלוי או לדרך המדידה משך ציפת דסקית / [קצב] פירוק מי חמצן / [קצב] פעילות קטלאז/אנזים. 3. התייחסות לאורגניזם: עדשים.`} 
+        correctIndex={0}
+        explanation={`מבחנה A (טריפסין) ומבחנה B (ברומלין) מכילות אנזימים שמפרקים את הג'לטין - לכן הוא לא נקרש. מבחנה C (מים) משמשת כבקרה ובה החלבון נשאר שלם ונקרש.`}
       />
 
-      <MultipleChoiceQnA 
-        qNum="5. ב" 
-        points={4}
-        onAnswer={onAnswer}
-        question="מהו המשתנה הבלתי תלוי בניסוי שערכתם בחלק ב?" 
+      <MCQ qNum="62א" points={7} onScore={onScore}
+        question="מהי החשיבות של שהיית המבחנות באמבט 1 (37°C-40°C) לפני העברתן לאמבט הקירור (אמבט 2)?"
         options={[
-          "משך הזמן שלקח לדסקיות הנייר לצוף בחזרה למעלה בכל אחת מן המדידות.",
-          "קצב פעילות האנזים קטלאז כפי שחושב על ידי התלמידים בתום שלב התצפית.",
-          "ריכוז תמיסת המלח (NaCl) שבה הונבטו נבטי העדשים לפני תחילת הניסוי.",
-          "נפח מי החמצן שהוסף לכל אחת מן המבחנות במהלך מערך הבדיקה עצמו."
+          "הטמפרטורה הגבוהה גורמת לדנטורציה מהירה של האנזימים, ומבטיחה שהג'לטין יישאר שלם לחלוטין וייקרש.",
+          "טמפרטורה זו מהווה את סביבת הפעילות האופטימלית של האנזימים, ומאפשרת להם לפרק את החלבון ביעילות מרבית.",
+          "השהייה באמבט החם נחוצה על מנת לאדות את עודפי המים מן התמיסה, תהליך שמעלה את ריכוז הג'לטין לפני הקירור.",
+          "הטמפרטורה החמימה גורמת לחלבון הג'לטין להיקרש באופן מיידי, כך ששלב הקירור נועד רק לשמר את המצב המוצק.",
         ]}
-        correctAnswerIndex={2}
-        explanation={`ריכוז [תמיסת] המלח [שבה הונבטו העדשים].`} 
+        correctIndex={1}
+        explanation={`אמבט 1 מדמה טמפרטורת גוף (37-40 מעלות) - זוהי הטמפרטורה שבה האנזימים (טריפסין ופרוטאז האננס) פועלים בקצב המרבי וצריכים זמן כדי לפרק את החלבון ג'לטין לפפטידים. קירור מוקדם מדי היה מעכב אותם.`}
       />
 
-      <MultipleChoiceQnA 
-        qNum="6. א" 
-        points={4}
-        onAnswer={onAnswer}
-        question="מהו המשתנה התלוי בניסוי שערכתם בחלק ב?" 
+      <MCQ qNum="62ב" points={7} onScore={onScore}
+        question="כיצד תסביר את ההבדל בתוצאות הקרישה בין מבחנה C (מים) לבין מבחנות A (טריפסין) ו-B (מיצוי אננס)?"
         options={[
-          "כמות המים המזוקקים שהוספה למבחנת הבקרה במטרה לשמור על נפח קבוע.",
-          "ריכוז תמיסת המלח ששימשה להנבטת זרעי העדשים לאורך שני ימי ההנבטה.",
-          "קצב פעילות האנזים קטלאז (או קצב פירוק מי חמצן) הנמדד באמצעות ציפה.",
-          "מספר נבטי העדשים שנכתשו עבור הכנת המיצוי לכל אחת מארבע המבחנות."
+          "תוספת המים במבחנה C ממיסה לחלוטין את הג'לטין ומונעת יצירת רשת, בעוד שהאנזימים שבמבחנות A ו-B מעודדים, מזרזים ומחזקים את תהליך יצירת קשרי החלבון.",
+          "במבחנות A ו-B מולקולות האנזים ספחו אליהן את כל תמיסת המים ביעילות, וכך למעשה לא נותרה תמיסת ג'לטין חופשית שתוכל לעבור תהליך קרישה לאחר שלב החימום.",
+          "הטריפסין ומיצוי האננס משנים לחלוטין את התכונות הפיזיקליות של התמיסה ומורידים את טמפרטורת הקרישה הטבעית שלה אל הרבה מתחת לאפס מעלות ולכן היא נוזלית.",
+          "האנזימים שבמבחנות A ו-B פירקו את הג'לטין לפפטידים קצרים שאינם מסוגלים ליצור רשת ולכן אינם נקרשים בקירור. ב-C, ללא אנזים, הג'לטין נותר שלם ונקרש.",
         ]}
-        correctAnswerIndex={2}
-        explanation={`קצב / מידת , פעילות אנזים / פעילות קטלאז / פירוק מי חמצן. (קצב יצירת/פליטת חמצן).`} 
+        correctIndex={3}
+        explanation={`הג'לטין נקרש בקירור רק אם השרשרות שלו ארוכות ושלמות ויכולות ליצור רשת (כפי שקרה במבחנה C). כאשר האנזימים המפרקים גוזרים אותו לפפטידים קצרים (מבחנות A ו-B), הרשת לא יכולה להיווצר והתמיסה נשארת נוזלית גם בקירור.`}
       />
-
-      <MultipleChoiceQnA 
-        qNum="6. ב" 
-        points={5}
-        onAnswer={onAnswer}
-        question="מדוע מדידת משך זמן הציפה היא דרך מתאימה למדידת המשתנה התלוי?" 
-        options={[
-          "הדסקית מתפרקת לאיטה במהלך הניסוי וצפה רק כשהיא הופכת קלה מספיק לשם כך.",
-          "האנזים מפרק מי חמצן לחמצן. ככל שהפעילות מהירה, נוצר יותר גז שמציף את הדסקית.",
-          "מים מזוקקים דוחפים את הדסקית למעלה בכוח רב יותר ככל שיש פחות מלח במבחנה.",
-          "הדסקית סופגת מלח והופכת לכבדה יותר ככל שיש יותר מלח בתמיסה שבה היא הוטבלה."
-        ]}
-        correctAnswerIndex={1}
-        explanation={`ככל שקצב פעילות האנזים / קטלאז, מהיר יותר/ קצב פירוק מי חמצן גבוה יותר, משתחרר יותר גז/חמצן, והדסקית תצוף מהר יותר / הזמן עד לציפת הדסקית קצר יותר.`} 
-      />
-
-      <MultipleChoiceQnA 
-        qNum="7." 
-        points={6}
-        onAnswer={onAnswer}
-        question="על סמך המידע על השפעת המלח נתרן כלורי על חלבונים (לידיעתכם 1), מהו ההסבר לתוצאות הניסוי?" 
-        options={[
-          "במבחנה ד' (0% מלח ומים) הדסקית לא צפה כלל מכיוון שהמלח הוא הגורם המרכזי שמזרז את התגובה הכימית של פירוק מי החמצן.",
-          "יוני הנתרן משמשים כסובסטרט מתחרה למי החמצן, ולכן בריכוז 4% פעילות האנזים התעכבה משמעותית בגלל התחרות על האתר הפעיל.",
-          "המלח גורם לעדשים לספוג הרבה פחות מים, ולכן הדסקית הייתה כבדה יותר במלח בריכוז 4% ולקח לה יותר זמן לצוף למעלה.",
-          "ככל שריכוז המלח גבוה יותר, יוני נתרן חודרים לתאים וגורמים לדנטורציה של הקטלאז. הפעילות יורדת והדסקית צפה לאט יותר."
-        ]}
-        correctAnswerIndex={3}
-        explanation={`ככל שריכוז המלח בתמיסות ההנבטה גבוה יותר, כך יותר יוני נתרן חודרים לתאים וגורמים לפגיעה / לשינוי במבנה המרחבי / לדנטורציה, בחלבונים/אנזימים. לכן יש ירידה בפעילות קטלאז / בפירוק מי חמצן, נוצרות פחות בועות גז והדסקית צפה לאט יותר. במבחנת הבדיקה ד' אין מי חמצן, לכן לא נוצרות בועות והדסקית לא צפה.`} 
-      />
-
-      <MultipleChoiceQnA 
-        qNum="8. א" 
-        points={4}
-        onAnswer={onAnswer}
-        question="הטיפול שנבדק במבחנה ד הוא טיפול בקרה. מהי החשיבות של טיפול הבקרה בניסוי זה?" 
-        options={[
-          "להוכיח שהציפה של הדסקית מושפעת גם מהימצאות מי חמצן בתמיסה.",
-          "להוכיח שהציפה של הדסקית מושפעת גם מהימצאות האנזים קטלאז בתוך תמיסת הבדיקה.",
-          "להוכיח שמשך זמן הציפה של הדסקית יכול להיות יותר מ-120 שניות תחת תנאי הניסוי.",
-          "להוכיח שמשך זמן הציפה של הדסקית מושפע מכמות המיצוי המדויקת שנמצאת על הדסקית."
-        ]}
-        correctAnswerIndex={0}
-        explanation={`להוכיח שהציפה של הדסקית מושפעת גם מהימצאות מי חמצן בתמיסה.
-למורה: במבחנה ד נבדקה ציפת דסקית שהוטבלה במיצוי מנבטים שנבטו ללא מלח, והדסקית הוטבלה במים. חשיבות טיפול בקרה הוא שלילת הסבר חלופי. ההסבר החלופי שבקרה זו מאפשרת לשלול הוא: ריכוז המלח שמומס במיצוי משפיע באופן פיזיקלי (בגלל הבדל בצפיפות התמיסה) על קצב ציפת הדסקיות, ואינו מושפע ממידת פעילות קטלאז שבמיצוי הנבטים על מי חמצן.
-ניסוי זה עלול להיות מסובך לתלמידים ולכן בחרנו בניסוח פשוט, במשפט חיובי, המתייחס להיעדר מי חמצן במבחנת הבקרה.`} 
-      />
-
-      <MultipleChoiceQnA 
-        qNum="8. ב" 
-        points={5}
-        onAnswer={onAnswer}
-        question="בניסוי שערכתם בחלק ב יש טיפול בקרה נוסף. מהו טיפול הבקרה הנוסף? מדוע חשוב לכלול גם אותו בניסוי זה?" 
-        options={[
-          "מבחנה ג' (4% מלח). היא מהווה בקרה משום שהיא מציגה את מצב העקה הקיצוני ביותר שיש להשוות אליו.",
-          "מבחנה ב' (2% מלח). היא משמשת כמצב ביניים המעיד על כך שהשינוי בקצב הפעילות הוא שינוי הדרגתי.",
-          "אין טיפול בקרה נוסף. מבחנה ד' היא הבקרה היחידה שמוכיחה את קיום התגובה בעזרת מים מזוקקים טהורים.",
-          "מבחנה א' (0% מלח). בקרה זו נועדה לשלול הסבר חלופי ולוודא שההבדל בפעילות נובע רק מריכוז המלח."
-        ]}
-        correctAnswerIndex={3}
-        explanation={`מבחנת בדיקה א [היא טיפול בקרה] לוודא [שריכוז] המלח הוא הגורם המשפיע על פעילות האנזים / מהירות ציפת הדסקיות.`} 
-      />
-
-      <MultipleChoiceQnA 
-        qNum="9. א" 
-        points={4}
-        onAnswer={onAnswer}
-        question="אילו גורמים נשמרו קבועים בניסוי שערכתם?" 
-        options={[
-          "ריכוז המלח בתמיסת ההשריה והנפח המדויק של המים המזוקקים במבחנות.",
-          "סוג הזרעים (עדשים), טמפרטורת החדר, ריכוז האנזים ונפח מי החמצן.",
-          "קצב יצירת בועות החמצן, צבע הזרעים ואופן הכנת המיצוי בכל מבחנה.",
-          "זמן ציפת הדסקית, ריכוז האנזים קטלאז ועוצמת האור בחדר המעבדה."
-        ]}
-        correctAnswerIndex={1}
-        explanation={`סוג הזרעים/נבטים, טמפרטורה [של מי חמצן/התמיסה במבחנת הבדיקה], משך זמן ההנבטה, דרגת pH [של תמיסת הנבטה / תמיסת מי חמצן], גודל הדסקית / נפח המיצוי שנספג על הדסקית, ריכוז מי חמצן, נפח הנוזל / גודל המבחנה.`} 
-      />
-
-      <MultipleChoiceQnA 
-        qNum="9. ב" 
-        points={4}
-        onAnswer={onAnswer}
-        question="הסבירו מדוע היה חשוב שטמפרטורת החדר תישאר קבועה בניסוי שערכתם." 
-        options={[
-          "נפח הנוזל במבחנה נוטה להשתנות בעקבות טמפרטורה ולכן יש לקבע אותה בניסוי.",
-          "כדי שהמים לא ירתחו ויגרמו לנזק מבני בלתי הפיך לסיבי דסקית הנייר במהלך הניסוי.",
-          "הטמפרטורה משפיעה על קצב הפעילות האנזימטית ולכן רק המלח אמור להשפיע בניסוי.",
-          "טמפרטורה גבוהה מדי גורמת למלח להתאדות מהתמיסה וכך משנה את ריכוזו המדויק."
-        ]}
-        correctAnswerIndex={2}
-        explanation={`טמפרטורה משפיעה על קצב תהליכים אנזימטיים / קצב פירוק מי חמצן. בניסוי נבדקה ההשפעה של גורם אחר / משתנה בלתי תלוי אחר / ריכוזים שונים של תמיסות מלח, [ולכן כל שאר הגורמים צריכים להישמר קבועים].`} 
-      />
-    </div>
+    </section>
   );
 };
 
-// --- Part C Component ---
-const PartC = ({ onAnswer }) => {
+// =========================
+// חלק ב'
+// =========================
+const PartB = ({ onScore }) => {
+  const [phase, setPhase] = useState(0);
+
+  const phaseLabels = [
+    'לחצו כדי להתחיל את ניסוי העיכוב.',
+    'שלב 1: הוספת 1 מ"ל מיצוי אננס + מעכב בריכוזים שונים לכל מבחנה (מבחנה 5 — מים בלי אנזים).',
+    'שלב 2: הוספת 2 מ"ל תמיסת ג\'לטין לכל המבחנות.',
+    'שלב 3: ערבוב.',
+    'שלב 4: אמבט 1 (37°C–40°C) — 5 דקות.',
+    'שלב 5: אמבט 2 (קירור מתחת ל-10°C) — 8 דקות.',
+    'שלב 6: הטיית כל המבחנות 45°. שימו לב להבדלים בכמות הנוזל (פפטידים) שנותרה ישרה לעומת כמות הג\'ל (שנוטה עם המבחנה).',
+    'שלב 7: איסוף הנוזל שלא נקרש (הפפטידים) מכל מבחנה אל המשורה למדידת נפחו.',
+  ];
+
+  // גובה הג'ל הקרוש (מוצק) בכל מבחנה. מה שלא קרוש - יישאר נוזל.
+  const gelHeights = [55, 45, 20, 0, 60];
+
   return (
-    <div className="mb-12">
-      <h2 className="text-xl md:text-2xl font-bold mb-4 text-amber-900 border-b-4 border-amber-200 pb-2">חלק ג' - התאמות של צמח היבלית</h2>
-      
-      {/* פתיח חלק ג' */}
-      <div className="bg-amber-50/70 p-4 md:p-5 rounded-xl mb-6 border-r-8 border-amber-400 shadow-sm text-sm md:text-base text-stone-800 leading-relaxed">
-        <p className="mb-2">
-          בשטחים חקלאיים שמשקים אותם במי קולחין (מי שפכים שעברו טיהור) יש עלייה בריכוז המלחים בקרקע. גורם נוסף לעלייה בריכוז המלחים בקרקע הוא התאדות רבה של המים שבקרקע.<br/>
-          ריכוז גבוה של מלחים בקרקע הוא אחד הגורמים האביוטיים המשפיעים על התפתחות צמחים.
-        </p>
-        <p className="mb-4">
-          חוקרים מצאו זנים של צמחי יבלית שמותאמים לתנאי מליחות, כלומר הם יכולים להתפתח בקרקעות שיש בהן ריכוז גבוה של מלחים. הבנה של מנגנוני ההתאמה של צמחים לתנאי מליחות תסייע לפתח צמחים שיוכלו לגדול בתנאים אלה.
-        </p>
-        <p className="mb-2 font-bold underline decoration-amber-300 decoration-2 underline-offset-4">ניסוי 1:</p>
+    <section className="mb-16">
+      <h2 className="text-xl md:text-2xl font-black mb-6 text-amber-900 border-b-4 border-amber-300 pb-2 inline-block">
+        חלק ב' — עיכוב פעילות האנזים ממיצוי אננס
+      </h2>
+
+      <div className="bg-white p-5 rounded-2xl border border-amber-100 mb-6 text-stone-800 text-sm md:text-base leading-relaxed font-medium shadow-sm">
         <p>
-          החוקרים גידלו צמחי יבלית בני אותו גיל משני זנים — זן א' וזן ב' — בתמיסות שבהן ריכוזים שונים של המלח NaCl.<br/>
-          לאחר שלושה שבועות הם הכינו מיצויים מן הצמחים משני הזנים, ומדדו את הריכוז של מי החמצן (H₂O₂) במיצויים.<br/>
-          מי החמצן הם תוצר לוואי בתהליך הנשימה התאית, והם רעילים לתאים.<br/>
-          תוצאות הניסוי מוצגות בטבלה 3 שלהלן.
+          בחלק זה נבדוק כיצד ריכוזים שונים של <strong>נחושת גופרתית</strong> (מעכב) משפיעים על פעילות האנזים ממיצוי האננס.
+          ככל שהמעכב יעיל יותר — כך יישאר יותר ג'לטין שלם שייקרש, ופחות פפטידים יווצרו.
         </p>
       </div>
 
-      <div className="bg-white p-4 md:p-5 border border-stone-200 rounded-xl shadow-sm mb-6 max-w-2xl mx-auto">
-        <h4 className="font-bold text-center mb-3 text-amber-900 text-sm md:text-base">טבלה 3: ניסוי 1 - ריכוז מי חמצן במיצוי (יחידות יחסיות)</h4>
-        <table className="w-full text-center border-collapse text-sm md:text-base">
-          <thead>
-            <tr className="bg-amber-100 border-b-2 border-amber-200 text-amber-900">
-              <th className="p-1.5 border-l border-amber-200 w-1/3">ריכוז המלח (%)</th>
-              <th className="p-1.5 border-l border-amber-200 w-1/3">זן א'</th>
-              <th className="p-1.5 w-1/3">זן ב'</th>
-            </tr>
-          </thead>
-          <tbody>
+      <InfoBox title="🧪 לידיעתך 2:">
+        נחושת גופרתית מעכבת את פעילות האנזים המפרק חלבון. 
+        <strong> המדד לפעילות האנזים: נפח הנוזל (פפטידים) שאינו נקרש ונאסף מהמבחנה.</strong>
+      </InfoBox>
+
+      {/* מעבדה חלק ב' */}
+      <div className="bg-white border-2 border-amber-200 rounded-3xl shadow-md p-5 md:p-8 mb-8">
+        <h3 className="font-black text-amber-900 text-lg mb-5 text-center">מעבדת הניסוי — חלק ב'</h3>
+        <PhaseText text={phaseLabels[phase]} />
+
+        {/* שלבים 1–6: מבחנות */}
+        <BathContainer phase={phase} bathPhase1={4} bathPhase2={5} minWidth="640px">
+          {[
+            { id: '1', p1: 'bg-indigo-400', p2: 'bg-amber-300', gel: gelHeights[0], c: ['אננס + מעכב 2%', '2 מ"ל ג\'לטין'] },
+            { id: '2', p1: 'bg-blue-400',   p2: 'bg-amber-300', gel: gelHeights[1], c: ['אננס + מעכב 0.2%', '2 מ"ל ג\'לטין'] },
+            { id: '3', p1: 'bg-sky-300',    p2: 'bg-amber-300', gel: gelHeights[2], c: ['אננס + מעכב 0.02%', '2 מ"ל ג\'לטין'] },
+            { id: '4', p1: 'bg-orange-400', p2: 'bg-amber-300', gel: gelHeights[3], c: ['אננס + מים', '2 מ"ל ג\'לטין'] },
+            { id: '5', p1: 'bg-slate-400',  p2: 'bg-blue-200',  gel: gelHeights[4], c: ['מים + מים', '2 מ"ל ג\'לטין'] },
+          ].map(t => (
+            <Tube key={t.id} label={t.id} phase={phase}
+              pour1Phase={1} pour1Color={t.p1}
+              pour2Phase={2} pour2Color={t.p2}
+              mixPhase={3} tiltPhase={6}
+              gelHeight={t.gel}
+              contents={t.c}
+            />
+          ))}
+        </BathContainer>
+
+        {/* שלב 7: משורות */}
+        {phase >= 7 && (
+          <div className="rounded-3xl border-4 border-stone-200 bg-stone-50 shadow-inner flex flex-wrap justify-center items-end py-10 gap-8 mb-6 mt-8">
             {[
-              [0, 2.5, 2.5],
-              [0.3, 2.3, 2.5],
-              [0.5, 2.7, 2.5],
-              [0.7, 2.3, 3.5],
-              [1.0, 2.4, 4.7]
-            ].map((row, i) => (
-              <tr key={i} className="border-b hover:bg-stone-50">
-                <td className="p-1.5 border-l border-stone-200 font-bold">{row[0]}</td>
-                <td className="p-1.5 border-l border-stone-200">{row[1]}</td>
-                <td className="p-1.5">{row[2]}</td>
-              </tr>
+              { l: '1', v: 0.1 },
+              { l: '2', v: 0.8 },
+              { l: '3', v: 1.6 },
+              { l: '4', v: 2.1 },
+              { l: '5', v: 0.0 },
+            ].map(m => (
+              <MeasuringCylinder key={m.l} label={m.l} volume={m.v} isVisible={phase >= 7} />
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+        )}
 
-      <MultipleChoiceQnA 
-        qNum="10. א" 
-        points={4}
-        onAnswer={onAnswer}
-        question="איזה מסיח מתאר בצורה הטובה ביותר את התוצאות המוצגות בטבלה 3?" 
-        options={[
-          "בזן א' הריכוז נשאר נמוך וקבוע, בעוד שבזן ב' חלה עלייה חדה החל מ-0.7% מלח.",
-          "בשני הזנים גם יחד חלה עלייה זהה בריכוז מי החמצן ככל שריכוז המלח עלה.",
-          "בזן ב' הריכוז נשאר יציב, ובזן א' חלה עלייה דרמטית.",
-          "בריכוזי מלח גבוהים חלה ירידה בריכוז מי החמצן בשני הזנים."
-        ]}
-        correctAnswerIndex={0}
-        explanation={`בזן א' הריכוז נשאר סביב 2.3-2.7 יחידות יחסיות (נמוך וללא שינוי מגמתי), בעוד שבזן ב' הריכוז מזנק מ-2.5 ל-3.5 (בריכוז 0.7% מלח) ואף מגיע ל-4.7 (ב-1.0% מלח).`} 
-      />
-
-      <MultipleChoiceQnA 
-        qNum="10. ב" 
-        points={4}
-        onAnswer={onAnswer}
-        question="איזה סוג גרף מתאים ביותר להצגת נתוני טבלה 3?" 
-        options={[
-          "דיאגרמת עמודות, כי אלו קבוצות שונות.", 
-          "גרף רציף (קו/פיזור), כי ריכוז המלח הוא משתנה כמותי רציף.", 
-          "גרף עוגה, להצגת החלק היחסי של כל זן.", 
-          "אין אפשרות להציג נתונים אלו בגרף."
-        ]}
-        correctAnswerIndex={1}
-        explanation={`גרף רציף / פיזור. נימוק: המשתנה הבלתי תלוי (ריכוז מלח / NaCl), הוא משתנה רציף / כמותי.`} 
-      />
-
-      <div className="bg-white p-4 md:p-5 border-2 border-stone-100 rounded-2xl shadow-md mb-6 flex flex-col items-center justify-center">
-        <div className="text-right w-full mb-4 px-2">
-           <h4 className="font-bold text-stone-800 text-sm md:text-lg mb-1">ניסוי 2:</h4>
-           <p className="text-stone-700 text-sm md:text-base">
-             החוקרים בדקו את קצב הפעילות של האנזים קטלאז בשני הזנים של צמחי היבלית שהם גידלו.<br/>
-             תוצאות הניסוי מתוארות בגרף שלהלן.
-           </p>
+        {/* כפתורים */}
+        <div className="flex flex-wrap justify-center gap-2.5 mt-8">
+          <StepBtn label="1: חומרים ומעכב" onClick={() => setPhase(1)} disabled={phase >= 1} color="sky" />
+          <StepBtn label="2: ג'לטין" onClick={() => setPhase(2)} disabled={phase < 1 || phase >= 2} color="amber" />
+          <StepBtn label="3: ערבוב" onClick={() => setPhase(3)} disabled={phase < 2 || phase >= 3} color="stone" />
+          <StepBtn label="4: אמבט חם" onClick={() => setPhase(4)} disabled={phase < 3 || phase >= 4} color="orange" />
+          <StepBtn label="5: קירור" onClick={() => setPhase(5)} disabled={phase < 4 || phase >= 5} color="blue" />
+          <StepBtn label="6: הטיה" onClick={() => setPhase(6)} disabled={phase < 5 || phase >= 6} color="lime" />
+          <StepBtn label="7: איסוף הנוזל למשורה" onClick={() => setPhase(7)} disabled={phase < 6 || phase >= 7} color="emerald" />
+          <StepBtn label="↺ איפוס" onClick={() => setPhase(0)} color="rose" />
         </div>
-        
-        {/* הגרף עם כל המרכיבים (מקרא, כותרות צירים מלאות וכו') */}
-        <div className="w-full max-w-3xl bg-white rounded-xl p-2 overflow-x-auto ltr border border-stone-100 relative">
-          <svg viewBox="0 0 650 350" className="w-full h-auto min-w-[400px]">
-            {/* כותרת הגרף */}
-            <text x="280" y="25" fontSize="16" fill="#1c1917" textAnchor="middle" fontWeight="bold">
-              השפעת ריכוזי מלח על קצב פעילות קטלאז בשני זנים של יבלית
-            </text>
-            
-            {/* מקרא מסודר מימין לשמאל בתוך הקופסה */}
-            <g transform="translate(540, 20)">
-              <rect x="0" y="0" width="90" height="65" fill="white" stroke="#ccc" rx="4"/>
-              <text x="80" y="22" fontSize="13" fontWeight="bold" textAnchor="end" fill="#333">מקרא:</text>
-              
-              <text x="80" y="42" fontSize="13" fill="#333" textAnchor="end">זן א'</text>
-              <path d="M 10 38 L 35 38" stroke="#d97706" strokeWidth="2" strokeDasharray="5,5" />
-              <circle cx="22.5" cy="38" r="4" fill="#fef3c7" stroke="#d97706" strokeWidth="2" />
-              
-              <text x="80" y="58" fontSize="13" fill="#333" textAnchor="end">זן ב'</text>
-              <path d="M 10 54 L 35 54" stroke="#78350f" strokeWidth="2" />
-              <circle cx="22.5" cy="54" r="4" fill="#78350f" />
-            </g>
 
-            <g stroke="#e5e7eb" strokeWidth="1">
-              {[...Array(11)].map((_, i) => <line key={i} x1="80" y1={250 - i*20} x2="480" y2={250 - i*20} strokeDasharray={i > 0 ? "2,2" : ""} />)}
-              {[...Array(11)].map((_, i) => <line key={i} x1={80 + i*40} y1="50" x2={80 + i*40} y2="250" strokeDasharray="2,2" />)}
-            </g>
-            <polyline points="80,50 80,250 480,250" fill="none" stroke="#374151" strokeWidth="2" />
-            
-            <path d="M 80 150 Q 140 150 200 150 Q 240 150 280 90 Q 320 30 360 130 Q 420 160 480 190" fill="none" stroke="#78350f" strokeWidth="3" />
-            <path d="M 80 150 Q 140 150 200 150 Q 240 150 280 150 Q 320 150 360 68 Q 420 70 480 78" fill="none" stroke="#d97706" strokeWidth="3" strokeDasharray="6,6" />
-            
-            {/* נקודות זן ב' */}
-            <circle cx="80" cy="150" r="4" fill="#78350f" />
-            <circle cx="200" cy="150" r="4" fill="#78350f" />
-            <circle cx="280" cy="90" r="4" fill="#78350f" />
-            <circle cx="360" cy="130" r="4" fill="#78350f" />
-            <circle cx="480" cy="190" r="4" fill="#78350f" />
-
-            {/* נקודות זן א' */}
-            <circle cx="80" cy="150" r="4" fill="#fef3c7" stroke="#d97706" strokeWidth="2" />
-            <circle cx="280" cy="150" r="4" fill="#fef3c7" stroke="#d97706" strokeWidth="2" />
-            <circle cx="360" cy="68" r="4" fill="#fef3c7" stroke="#d97706" strokeWidth="2" />
-            <circle cx="480" cy="78" r="4" fill="#fef3c7" stroke="#d97706" strokeWidth="2" />
-            
-            {/* מספרי ציר Y */}
-            <g fontSize="12" fill="#57534e" textAnchor="end">
-              {[...Array(11)].map((_, i) => (
-                <text key={`ty${i}`} x="70" y={250 - i*20 + 4}>{i*5}</text>
+        {/* טבלה 3 דינמית */}
+        <div className="mt-10 overflow-x-auto bg-amber-50/40 p-5 rounded-2xl border border-amber-100">
+          <h4 className="font-black text-center text-amber-900 mb-4 text-base">
+            טבלה 3 — תוצאות ניסוי העיכוב
+          </h4>
+          <p className="text-center text-xs text-stone-500 mb-3">הטבלה מתמלאת אוטומטית לפי שלבי הניסוי</p>
+          <table className="w-full text-center border-collapse bg-white rounded-2xl overflow-hidden text-xs md:text-sm border border-amber-200 shadow-sm" style={{ minWidth: '650px' }}>
+            <thead className="bg-amber-100 text-amber-900 font-bold">
+              <tr>
+                <th className="p-2.5 border border-amber-200">מבחנה</th>
+                <th className="p-2.5 border border-amber-200">ריכוז מעכב התחלתי</th>
+                <th className="p-2.5 border border-amber-200">מיצוי אננס (מ"ל)</th>
+                <th className="p-2.5 border border-amber-200">מים מזוקקים (מ"ל)</th>
+                <th className="p-2.5 border border-amber-200">תמיסת ג'לטין (מ"ל)</th>
+                <th className="p-2.5 border border-amber-200 bg-amber-200 font-black">נפח פפטידים (מ"ל)</th>
+              </tr>
+            </thead>
+            <tbody className="text-stone-700 font-medium">
+              {[
+                { id: 1, c: '2.0%',    p: '1', w: '0', g: '2', r: '0.1' },
+                { id: 2, c: '0.2%',    p: '1', w: '0', g: '2', r: '0.8' },
+                { id: 3, c: '0.02%',   p: '1', w: '0', g: '2', r: '1.6' },
+                { id: 4, c: '0% (מים)',p: '1', w: '0', g: '2', r: '2.1' },
+                { id: 5, c: '0% (מים)',p: '0', w: '1', g: '2', r: '0.0' },
+              ].map(row => (
+                <tr key={row.id} className="border-b border-amber-50 hover:bg-amber-50 transition-colors">
+                  <td className="p-2.5 border border-amber-100 font-black bg-amber-50">{row.id}</td>
+                  <td className="p-2.5 border border-amber-100">{phase >= 1 ? row.c : '—'}</td>
+                  <td className="p-2.5 border border-amber-100">{phase >= 1 ? row.p : '—'}</td>
+                  <td className="p-2.5 border border-amber-100">{phase >= 1 ? row.w : '—'}</td>
+                  <td className="p-2.5 border border-amber-100">{phase >= 2 ? row.g : '—'}</td>
+                  <td className="p-2.5 border border-amber-100 font-black text-amber-700 text-base">{phase >= 7 ? row.r : '—'}</td>
+                </tr>
               ))}
-            </g>
-
-            {/* מספרי ציר X */}
-            <g fontSize="12" fill="#57534e" textAnchor="middle">
-              {[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1].map((v, i) => (
-                <text key={`tx${i}`} x={80 + i*40} y="268">{v}</text>
-              ))}
-            </g>
-
-            {/* כותרת ציר X */}
-            <text x="280" y="310" fontSize="14" fill="#1c1917" textAnchor="middle" fontWeight="bold">
-              ריכוז מלח NaCl בתמיסת הגידול (%)
-            </text>
-
-            {/* כותרת ציר Y */}
-            <text transform="translate(30, 150) rotate(-90)" fill="#1c1917" textAnchor="middle" fontWeight="bold" fontSize="14">
-              <tspan x="0" y="0">קצב פעילות האנזים קטלאז</tspan>
-              <tspan x="0" y="20">(יחידות יחסיות)</tspan>
-            </text>
-          </svg>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <MultipleChoiceQnA 
-        qNum="11. א" 
-        points={5}
-        onAnswer={onAnswer}
-        question="על סמך הנתונים, איזה זן יבלית מותאם לגידול בתנאי מליחות גבוהים (0.7% ומעלה)?" 
-        options={["אף אחד מהזנים.", "שני הזנים באופן זהה.", "זן ב' מותאם, זן א' לא.", "זן א' מותאם, זן ב' לא."]} 
-        correctAnswerIndex={3} 
-        explanation="זן א' מצליח לשמור על פעילות אנזימטית גבוהה יחסית גם בריכוזי מלח גבוהים." 
-      />
-      
-      <MultipleChoiceQnA 
-        qNum="11. ב" 
-        points={5}
-        onAnswer={onAnswer}
-        question="איזה נימוק מסביר בצורה הטובה ביותר את הקביעה שלכם?" 
+      {/* שאלות חלק ב */}
+      <MCQ qNum="64ב" points={7} onScore={onScore}
+        question="איזו מבין האפשרויות הבאות היא הכותרת המדויקת והמתאימה ביותר לטבלה 3 (תוצאות ניסוי העיכוב)?"
         options={[
-          "בניסוי 1 זן א' הראה עלייה במי חמצן, מה שמעיד על התאמה.",
-          "בזן א' רמת מי החמצן נשמרת נמוכה (ניסוי 1), ופעילות הקטלאז נשארת גבוהה (ניסוי 2).",
-          "בזן ב' פעילות הקטלאז עולה ב-0.7%, מה שמגן עליו.",
-          "אין קשר בין ניסוי 1 לניסוי 2."
+          "השפעת הנפח ההתחלתי של תמיסת הג'לטין על מהירות הקרישה של התמיסות, כאשר הן מועברות לטמפרטורות שונות.",
+          "בחינה השוואתית מקיפה בין רמת הפעילות של אנזים הטריפסין לבין האנזים ברומלין, בסביבה בעלת ריכוזי מלחים.",
+          "השפעת ריכוז הנחושת הגופרתית (המעכב) על פעילות האנזים ממיצוי האננס (הנמדדת לפי נפח תמיסת הפפטידים).",
+          "השפעת הכמות המוספת של מיצוי האננס על עצמת שינוי הצבע בתמיסות נחושת גופרתית שונות לאחר שלב הקירור.",
         ]}
-        correctAnswerIndex={1}
-        explanation={`לזן א' (המותאם): לפי ניסוי 1, רמת מי החמצן (שהם רעילים) נשמרת נמוכה בכל ריכוזי המלח. לפי ניסוי 2, פעילות האנזים קטלאז נשארת גבוהה גם בריכוזי מלח גבוהים. לזן ב' (שאינו מותאם): לפי ניסוי 1, בריכוזים הגבוהים חלה עלייה ברמת מי החמצן. לפי ניסוי 2, רואים ירידה תלולה בפעילות האנזים קטלאז ככל שעולה ריכוז המלח.`} 
+        correctIndex={2}
+        explanation={`כותרת טבלה תקינה בביולוגיה חייבת לכלול את המשתנה הבלתי תלוי (זה שאנו משנים - ריכוז המעכב) ואת המשתנה התלוי (זה שאנו מודדים - פעילות האנזים המבוטאת כנפח פפטידים).`}
       />
 
-      <MultipleChoiceQnA 
-        qNum="12. א" 
-        points={5}
-        onAnswer={onAnswer}
-        question="היעזרו בתשובתכם על שאלה 7, מהי הסיבה להבדל בין תוצאות הניסוי שערכתם בחלק ב ובין התוצאות שהתקבלו בנוגע לזן המותאם בניסוי 2 של החוקרים?" 
+      <MCQ qNum="65" points={7} onScore={onScore}
+        question="מהו המשתנה הבלתי תלוי (המשתנה המסביר) בניסוי שערכת בחלק ב'?"
         options={[
-          "בעדשים המלח חדר ופגע באנזים, בעוד שביבלית זן א' ייתכן שיש מנגנון המונע כניסת מלח לתא או שהאנזים עמיד.",
-          "צמחי עדשים מבצעים פוטוסינתזה חזקה יותר המעכבת את הפירוק, בעוד שביבלית הפוטוסינתזה חלשה יחסית.",
-          "בעדשים האנזים קטלאז מזרז בניית מי חמצן במקום פירוקם, מה שמוביל להרעלה מהירה בתנאי מליחות קיצוניים.",
-          "ביבלית מזן א' האנזים קטלאז אינו קיים כלל באופן טבעי, ולכן התגובה לא יכלה להיפגע מנוכחות של יוני מלח."
+          "הנפח של תמיסת הג'לטין שהוסף לכל אחת מהמבחנות בניסוי.",
+          "הריכוז של תמיסת הנחושת הגופרתית (המעכב) בכל מבחנה.",
+          "הטמפרטורה הקבועה שנקבעה מראש באמבט המים הקרים.",
+          "הנפח הסופי של תמיסת הפפטידים שנאסף לתוך המשורות.",
         ]}
-        correctAnswerIndex={0}
-        explanation={`הסיבה להבדל: בעדשים יוני הנתרן (מהמלח) חדרו וגרמו לדנטורציה (שינוי מבנה מרחבי) בחלבונים/אנזים ולירידה בפעילותו. לעומת זאת, ביבלית מזן א' (המותאם), ייתכן שיש מנגנון המונע כניסת מלח לתא, או שהחלבון/האנזים שלו עמיד למליחות ומבנהו המרחבי אינו נפגע.`} 
+        correctIndex={1}
+        explanation={`המשתנה הבלתי תלוי הוא הגורם שהחוקר משנה בכוונה תחילה בין מערכות הניסוי. בניסוי זה, הוכנו ריכוזים שונים של המעכב נחושת גופרתית (2%, 0.2%, 0.02% וכו').`}
       />
 
-      <MultipleChoiceQnA 
-        qNum="12. ב" 
-        points={6}
-        onAnswer={onAnswer}
-        question="איזו השפעה נוספת של מלח המצוי בקרקע יש על צמחים, מלבד מה שרשום בלידיעתכם 1?" 
+      <MCQ qNum="67א" points={7} onScore={onScore}
+        question="בניסוי זה נשמר ריכוז הג'לטין קבוע בכל המבחנות. מדוע חשוב לשמור על גורם זה קבוע במערך הניסוי?"
         options={[
-          "המלח מעלה בצורה משמעותית את טמפרטורת הקרקע במהלך שעות היום, מה שגורם לשריפת השורשים ולהפסקת הצמיחה.",
-          "ריכוז מלחים גבוה יוצר סביבה היפרטונית המורידה את פוטנציאל המים בקרקע, ומקשה על הצמח לקלוט מים לתוכו.",
-          "נוכחות של מלח בריכוז גבוה מזרזת את קצב הפריחה של הצמח, ולכן הוא מסיים את מחזור חייו מהר ומתייבש.",
-          "המלח המצטבר בקרקע מונע באופן ישיר כניסת פחמן דו-חמצני דרך הפיוניות, ובכך עוצר לגמרי את הפוטוסינתזה."
+          "שמירה על ריכוז קבוע נועדה להבטיח שצבע התמיסות יישאר אחיד לחלוטין, על מנת שלא לבלבל את הצופה בעת רישום התוצאות.",
+          "הג'לטין הוא מצע האנזים. שינוי בכמותו ישפיע על פעילות האנזים וימנע את היכולת לבודד את השפעת ריכוז המעכב בלבד.",
+          "ריכוז קבוע מבטיח שהג'לטין, בהיותו חלבון, לא ינטרל באופן מוחלט את ההשפעה המעכבת של יוני הנחושת הגופרתית בתמיסה.",
+          "ריכוז משתנה או גבוה מדי של ג'לטין עלול לגרום להתפשטות החומר וליצור לחץ רב שיוביל לשבירת המבחנות באמבט הקירור.",
         ]}
-        correctAnswerIndex={1}
-        explanation={`השפעה אוסמוטית. ריכוז מלחים גבוה בקרקע גורם לירידת פוטנציאל המים (או יצירת סביבה היפרטונית בקרקע ביחס לצמח). כתוצאה מכך, קשה לצמח לקלוט מים מן הקרקע (או אפילו מים עלולים לצאת מהצמח לקרקע), והצמח נמצא בסכנת התייבשות / קמילה / פגיעה בטורגור.`} 
+        correctIndex={1}
+        explanation={`כדי שהניסוי יהיה מבוקר (עיקרון "בידוד משתנים"), מותר לשנות רק גורם אחד (המשתנה הבלתי תלוי). אם כמות מצע הג'לטין תשתנה במקביל למעכב, לא נדע בוודאות אם השינוי בפעילות נבע מריכוז המעכב או מכמות המצע.`}
       />
-    </div>
+
+      <MCQ qNum="67ב" points={7} onScore={onScore}
+        question="פרט לריכוז ולנפח הג'לטין, ציין גורם נוסף שנשמר קבוע במערך הניסוי."
+        options={[
+          "הנפח הקבוע של מיצוי האננס שהוסף למבחנות מספר 1 עד 4.",
+          "הריכוז הסופי של תמיסת הנחושת הגופרתית במערכות הניסוי.",
+          "מידת הקרישה המדויקת של תמיסת הג'לטין בסיומו של הניסוי.",
+          "הנפח המצטבר של תמיסת הפפטידים שנאסף לתוך המשורות בסוף.",
+        ]}
+        correctIndex={0}
+        explanation={`נפח מיצוי האננס (שהוא למעשה כמות האנזים המפרק הזמינה) נשמר קבוע (1 מ"ל) בכל המבחנות שבהן נבדק האנזים (1 עד 4), כדי להבטיח שההבדל בפעילות נובע אך ורק מריכוז המעכב.`}
+      />
+
+      <MCQ qNum="68" points={6} onScore={onScore}
+        question="מהי המסקנה העיקרית שניתן להסיק מתוצאות המבחנות 1-4 בטבלה לגבי השפעת הנחושת הגופרתית?"
+        options={[
+          "לנוכחות של נחושת גופרתית אין כל השפעה מהותית על פעילות האנזים, וההבדלים הקלים שנמצאו בתוצאות נובעים אך ורק מטעויות מדידה.",
+          "נחושת גופרתית פועלת כזרז ומאיצה את פעילות האנזים: ככל שריכוז הנחושת עולה בהתאמה, כך קצב פירוק החלבון והיווצרות הפפטידים עולה.",
+          "נחושת גופרתית מעכבת את פעילות האנזים: ככל שריכוז הנחושת גבוה יותר, כך פעילות האנזים נמוכה יותר (נמדד פחות נפח פפטידים).",
+          "האנזים שבמיצוי פעיל באופן בלעדי רק בנוכחות של נחושת גופרתית; ללא נוכחות חומר זה הוא כלל אינו מסוגל לפרק את הג'לטין לפפטידים.",
+        ]}
+        correctIndex={2}
+        explanation={`על פי התוצאות בטבלה, כאשר ריכוז הנחושת הגופרתית היה הגבוה ביותר (2%), התקבל נפח הפפטידים הקטן ביותר (0.1 מ"ל), כלומר האנזים פעל במידה המועטה ביותר. מכאן שישנו קשר הפוך - המעכב מעכב את פעילות האנזים.`}
+      />
+    </section>
   );
 };
 
-// --- Score Summary Component ---
-const ScoreSummary = ({ scores, totalQuestions }) => {
-  const answered = Object.keys(scores).length;
-  const totalScore = Object.values(scores).reduce((acc, curr) => acc + (curr.isCorrect ? curr.points : 0), 0);
-  const totalPossible = 100;
-
+// =========================
+// חלק ג'
+// =========================
+const PartC = ({ onScore }) => {
   return (
-    <div className="bg-white border-4 border-amber-200 p-6 md:p-10 rounded-2xl shadow-lg mt-12 text-center relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 via-amber-500 to-lime-500"></div>
-      <h2 className="text-2xl md:text-3xl font-black text-amber-900 mb-4">סיכום ציון המעבדה</h2>
-      
-      <div className="flex flex-col items-center justify-center my-6">
-        <div className="text-6xl md:text-7xl font-black text-stone-800 drop-shadow-sm mb-2">{totalScore}</div>
-        <div className="text-lg md:text-xl font-medium text-stone-500">מתוך {totalPossible} נקודות</div>
-      </div>
+    <section className="mb-8">
+      <h2 className="text-xl md:text-2xl font-black mb-6 text-amber-900 border-b-4 border-amber-300 pb-2 inline-block">
+        חלק ג' — ניתוח ניסויים: שימוש בפטרייה להדברת מזיקים
+      </h2>
 
-      <p className="text-stone-700 font-medium mb-4 text-base md:text-lg">
-        ענית על <span className="font-bold text-amber-600">{answered}</span> מתוך <span className="font-bold">{totalQuestions}</span> שאלות במעבדה.
-      </p>
-
-      {answered < totalQuestions && (
-        <p className="text-rose-600 text-sm md:text-base font-bold bg-rose-50 p-3 rounded-lg inline-block border border-rose-200">
-          כדי לראות את הציון הסופי והמדויק, אנא השלם/י את כל השאלות שנותרו.
+      <div className="bg-white p-5 rounded-2xl border border-amber-100 mb-6 text-stone-800 text-sm md:text-base leading-relaxed font-medium shadow-sm">
+        <p className="mb-3">
+          חרקים מסוימים גורמים נזקים לגידולים חקלאיים. בשל המודעות הגוברת לאיכות הסביבה ולבריאות האדם, מדענים מנסים למצוא דרכים להדביר מזיקים באמצעים ידידותיים לסביבה. אחת הדרכים היא שימוש בפטרייה <em>Beauveria bassiana</em>. הפטרייה מייצרת אנזימים מפרקי חלבונים הגורמים לפירוק המעטה הקשיח של גוף החרקים, המורכב מרב-סוכר ומחלבון. באמצעות הפירוק האנזימטי של המעטה הפטרייה חודרת לגופו של החרק, מפרישה חומרים רעילים הגורמים למותו.
         </p>
-      )}
-
-      {/* Progress bar */}
-      <div className="w-full bg-stone-100 rounded-full h-6 mt-6 overflow-hidden border border-stone-200 relative">
-        <div className="absolute top-0 right-0 h-full bg-stone-100 w-full"></div>
-        <div 
-          className={`absolute top-0 right-0 h-full transition-all duration-1000 ${totalScore >= 80 ? 'bg-lime-500' : totalScore >= 55 ? 'bg-amber-400' : 'bg-rose-400'}`} 
-          style={{ width: `${(totalScore / totalPossible) * 100}%` }}
-        ></div>
       </div>
+
+      {/* ניסוי 1 */}
+      <div className="bg-white border-2 border-amber-200 rounded-3xl shadow-md p-5 md:p-8 mb-8">
+        <h4 className="font-black text-amber-900 text-lg mb-4">ניסוי 1: השוואת שני זני הפטרייה</h4>
+        <p className="text-stone-700 text-sm mb-5 leading-relaxed font-medium">
+          חוקרים חשפו שתי קבוצות של חרקים לנוזל המכיל תאי פטרייה משני זנים. כל קבוצה של חרקים נחשפה לזן אחר של הפטרייה. במשך 18 ימים בדקו החוקרים את שיעור תמותת החרקים משתי הקבוצות. 
+          <br/>(בנוסף, נערך טיפול בקרה שבו חרקים לא נחשפו לפטרייה כלל).
+        </p>
+
+        <div className="flex flex-col items-center justify-center">
+          {/* טבלה 4 (ממורכזת, ללא גרף) */}
+          <div className="overflow-x-auto w-full max-w-lg">
+            <h5 className="font-bold text-center text-amber-900 mb-3 text-sm">טבלה 4: תוצאות הניסוי</h5>
+            <table className="w-full text-center border-collapse bg-white rounded-xl overflow-hidden text-xs md:text-sm border border-amber-200 shadow-sm">
+              <thead className="bg-amber-100 text-amber-900 font-bold">
+                <tr>
+                  <th className="p-3 border border-amber-200">הזמן שעבר מן החשיפה (ימים)</th>
+                  <th className="p-3 border border-amber-200 text-rose-700">שיעור תמותת החרקים (%)<br/>פטרייה מזן א'</th>
+                  <th className="p-3 border border-amber-200 text-sky-700">שיעור תמותת החרקים (%)<br/>פטרייה מזן ב'</th>
+                </tr>
+              </thead>
+              <tbody className="text-stone-700 font-bold">
+                {[[4,15,30],[8,35,60],[12,45,90],[16,60,97],[18,62,97]].map(([d,a,b]) => (
+                  <tr key={d} className="border-b border-amber-100 hover:bg-amber-50 transition-colors">
+                    <td className="p-2.5 border border-amber-100 bg-amber-50">{d}</td>
+                    <td className="p-2.5 border border-amber-100 text-rose-600">{a}</td>
+                    <td className="p-2.5 border border-amber-100 text-sky-600">{b}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <MCQ qNum="69א" points={6} onScore={onScore}
+        question="אילו משתנים יופיעו על צירי הגרף שיציג את הנתונים מטבלה 4 (השוואת זני הפטרייה)?"
+        options={[
+          "ציר ה-X: שיעור תמותת החרקים באחוזים (משתנה תלוי); ציר ה-Y: הזמן שחלף בימים (משתנה בלתי תלוי).",
+          "ציר ה-X: הזמן שחלף בימים (משתנה בלתי תלוי); ציר ה-Y: שיעור תמותת החרקים באחוזים (משתנה תלוי).",
+          "ציר ה-X: זן הפטרייה הספציפי שניבדק בניסוי (משתנה בלתי תלוי); ציר ה-Y: שיעור תמותת החרקים באחוזים.",
+          "ציר ה-X: טמפרטורת הסביבה של החרקים במעלות צלזיוס; ציר ה-Y: הזמן שעבר מתחילת הניסוי והחשיפה בימים.",
+        ]}
+        correctIndex={1}
+        explanation={`בגרף מדעי, המשתנה הבלתי תלוי (הגורם שאנו עוקבים אחריו או משנים, במקרה זה הזמן שחלף) מופיע על ציר ה-X, והמשתנה התלוי (התוצאה הנמדדת בהתאם, שיעור התמותה) מופיע על ציר ה-Y.`}
+      />
+
+      <MCQ qNum="69ב" points={6} onScore={onScore}
+        question="איזה סוג של הצגה גרפית הוא המתאים ביותר לתיאור התוצאות בטבלה 4 (גרף רציף או דיאגרמת עמודות), ומדוע?"
+        options={[
+          "דיאגרמת עמודות נפרדות, משום שהזמן נמדד בימים מוגדרים (ערכים בדידים) בלבד ולא בוצע מעקב רציף לאורך כל שעות היממה.",
+          "דיאגרמת עוגה (תשטח), משום שסוג זה של גרף נועד להציג את החלק היחסי של התמותה בכל יום מתוך סך התמותה הכוללת בניסוי.",
+          "גרף קו (רציף), משום שהמשתנה הבלתי תלוי (הזמן) הוא משתנה כמותי רציף, וגרף קו מאפשר לזהות במדויק את מגמת השינוי לאורך הזמן.",
+          "גרף פיזור (נקודות ללא קו מחבר), כיוון שלמעשה אין כל קשר ישיר או מתאם מובהק בין הימים החולפים לבין שיעור התמותה של החרקים.",
+        ]}
+        correctIndex={2}
+        explanation={`הזמן הוא משתנה כמותי רציף (יש ערכים מוחשיים גם בין נקודות המדידה), ולכן הצגה בעזרת גרף קו רציף היא המתאימה ביותר כדי לזהות במדויק את המגמה ואת קצב התמותה המשתנה לאורך התקופה.`}
+      />
+
+      <MCQ qNum="70א" points={7} onScore={onScore}
+        question="תאר את התוצאות המוצגות בטבלה לגבי שיעור תמותת החרקים בשני הזנים."
+        options={[
+          "לאורך כל ימי הניסוי ניתן לראות בבירור שזן א' גורם לתמותה מוקדמת וגבוהה משמעותית של חרקים מאשר זן ב', אשר בקושי משפיע על תמותתם.",
+          "שיעור התמותה בשני הזנים נותר אפסי בשבועיים הראשונים, ורק לאחר 16 ימים מתחילה עלייה חדה בתמותת החרקים שמגיעה למקסימום ביום ה-18.",
+          "ניתן לראות כי בשני הזנים שיעור התמותה הולך ויורד באופן הדרגתי עם הזמן, כיוון שהחרקים מפתחים במהירות עמידות חיסונית להשפעת הפטרייה.",
+          "בשני הזנים שיעור התמותה עולה עם הזמן, אך זן ב' גורם לתמותה בקצב מהיר יותר ומגיע לשיעור תמותה מרבי גבוה יותר (97%) מזן א' (62%).",
+        ]}
+        correctIndex={3}
+        explanation={`על פי נתוני הטבלה, נצפית עלייה ברורה ועקבית בתמותה עבור שני הזנים לאורך הזמן, אולם קצב התמותה והערכים של זן ב' גבוהים באופן ניכר בכל שלב בהשוואה לזן א'.`}
+      />
+
+      <MCQ qNum="70ב" points={7} onScore={onScore}
+        question="בטיפול בקרה (שלא הוצג בטבלה) בדקו החוקרים חרקים באותם התנאים שלא נחשפו לפטרייה כלל. מהי החשיבות של טיפול בקרה זה?"
+        options={[
+          "מטרת טיפול הבקרה היא אך ורק לבדוק באיזו מהירות מתרבים החרקים באופן טבעי בתנאי מעבדה אופטימליים כאשר אין שום איום סביבתי מיידי על חייהם של החרקים.",
+          "טיפול זה נועד לבחון לעומק האם זני הפטרייה מסוגלים להתפתח ולשרוד על מצע הגידול באופן עצמאי לחלוטין, גם כאשר אין בסביבה הקרובה שום חרקים מזיקים חיים.",
+          "טיפול הבקרה מאפשר לשלול גורמים חלופיים ולהוכיח שהתמותה אכן נגרמה כתוצאה מהחשיפה לפטרייה בלבד, ולא בגלל תנאי הגידול, מחלה טבעית או חלוף הזמן.",
+          "הטיפול מיועד להבטיח שמספר החרקים הכולל אשר משתתף בניסוי יהיה זוגי, אחיד ושווה לחלוטין בשתי הקבוצות, על מנת לשמור על סטטיסטיקה אמינה בבחינת התוצאות.",
+        ]}
+        correctIndex={2}
+        explanation={`בכל ניסוי מדעי חייבת להיות קבוצת ביקורת (בקרה) שאינה מקבלת את הטיפול הנבדק (הפטרייה במקרה זה). זה מוודא שתוצאות התמותה נובעות אך ורק מהמשתנה הבלתי תלוי, ומוכיח סיבתיות ישירה.`}
+      />
+
+      {/* ניסוי 2 */}
+      <div className="bg-yellow-50 p-5 rounded-3xl mb-8 border-2 border-yellow-200 shadow-sm mt-8">
+        <h4 className="font-black text-amber-900 text-lg mb-3">ניסוי 2:</h4>
+        <p className="text-stone-800 text-sm md:text-base leading-relaxed font-medium">
+          החוקרים רצו לבדוק ממה נובעים ההבדלים שנמצאו בשיעור תמותת החרקים. לשם כך, החוקרים גידלו את שני הזנים של הפטרייה, כל זן בנפרד, על מצע גידול ובו החלבון ג'לטין. החוקרים מדדו את רמת הפירוק של החלבון.
+          <br/><strong>נמצא כי רמת הפירוק של החלבון ג'לטין בנוכחות זן ב' הייתה גבוהה יותר מרמת הפירוק שלו בנוכחות זן א'.</strong>
+        </p>
+      </div>
+
+      <MCQ qNum="71" points={7} onScore={onScore}
+        question="בניסוי 2 נמצא שזן ב' מפרק חלבון ג'לטין ביעילות גבוהה מזן א'. התבסס על מידע זה ועל הפתיח, והסבר מדוע זן ב' קטלני יותר לחרקים."
+        options={[
+          "פטרייה מזן ב' מייצרת יותר אנזימים מפרקי חלבון (או פעילים יותר). מאחר שמעטה החרק עשוי מחלבון, זן ב' מפרק את המעטה ביעילות, חודר לחרק וגורם לתמותה מוגברת.",
+          "פטרייה מזן א' מסוגלת לפרק אך ורק את הרב-סוכר, בעוד שזן ב' מפרק אך ורק חלבונים. מכיוון שמעטה החרקים באזורנו מכיל כמעט באופן בלעדי חלבון, זן ב' יעיל בהרבה.",
+          "זן ב' אינו מסתמך על פירוק כימי אלא חודר אל החרק ישירות דרך פתחי מערכת הנשימה, ולכן הוא כלל אינו זקוק לאנזימים כדי להרוג, מה שהופך את השפעתו למיידית וקטלנית.",
+          "זן ב' פיתח מנגנון שונה לחלוטין ואינו זקוק כלל לפירוק חלבוני כדי לחדור אל גוף החרק, זאת בניגוד גמור לזן א'. לפיכך הוא פועל באופן ישיר, מהיר ויעיל הרבה יותר.",
+        ]}
+        correctIndex={0}
+        explanation={`יש לקשר בין הנתונים: הפתיח קובע שחדירת הפטרייה דורשת פירוק של חלבון במעטה החרק. ניסוי 2 מראה שזן ב' מפרק חלבון טוב יותר מזן א'. המסקנה ההגיונית היא שזן ב' מפרק טוב ומהר יותר את מעטה החרק, ולכן מצליח לחדור פנימה ולהיות קטלני יותר (כפי שנצפה בניסוי 1).`}
+      />
+
+      <MCQ qNum="72" points={7} onScore={onScore}
+        question="האנזימים מפרקי החלבון מצויים בתאי האננס בתוך אברונים, ולא חופשיים בציטופלסמה. מדוע הימצאותם בתוך אברונים היא יתרון עבור תאי האננס?"
+        options={[
+          "מידור האנזימים מפרקי החלבון בתוך אברונים סגורים מונע מהם לפרק את חלבוני התא החיוניים הנמצאים בציטופלסמה, ובכך נמנע תהליך של הרס ועיכול עצמי (אוטוליזה) של תא האננס.",
+          "המעטפת של האברון מתפקדת כמבודד תרמי יוצא דופן השומר על האנזימים בטמפרטורה קבועה ונמוכה במיוחד, תנאי שבלעדיו הם היו עוברים דנטורציה ומאבדים את יכולת פעולתם לחלוטין.",
+          "אברונים ייעודיים אלה משמשים רק לצורך הובלה ואקסוציטוזה (הפרשה) מהירה של האנזימים אל מחוץ לתא, במטרה לאפשר לצמח לתקוף באופן מיידי חרקים התוקפים אותו ופוגעים בגידולו.",
+          "אנזימים מפרקי חלבון מסוג זה דורשים סביבה יבשה ונטולת מים לחלוטין כדי לפעול בצורה תקינה, והאברון הסגור הוא המבנה היחידי בתא שמספק את התנאים הייחודיים הנדרשים הללו במלואם.",
+        ]}
+        correctIndex={0}
+        explanation={`עיקרון המידור (Compartmentalization) בביולוגיה: האנזימים שבמיצוי הם מסוג פרוטאזות (מפרקי חלבון). אילו היו משוחררים ישירות בציטופלסמה של תא האננס, הם היו מפרקים את החלבונים החיוניים של התא עצמו וגורמים למותו. הכליאה שלהם באברון מונעת זאת ומגנה על שאר התא.`}
+      />
+    </section>
+  );
+};
+
+// =========================
+// סיכום ניקוד
+// =========================
+const ScoreSummary = ({ scores }) => {
+  const entries = Object.values(scores);
+  const answered = entries.length;
+  const totalQ   = 15;
+  const earned   = entries.reduce((s, e) => s + e.earned, 0);
+  const possible = 100;
+  const pct = Math.round((earned / possible) * 100);
+
+  return (
+    <div className="bg-white border-4 border-amber-300 p-8 rounded-3xl shadow-xl mt-12 text-center relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-orange-400 via-amber-400 to-lime-400" />
+      <h2 className="text-2xl md:text-3xl font-black text-amber-900 mb-5">סיכום הניקוד</h2>
+      <div className="text-6xl md:text-7xl font-black text-stone-800 mb-1">{earned}</div>
+      <div className="text-base text-stone-500 font-bold mb-5">מתוך {possible} נקודות | ענית על {answered}/{totalQ} שאלות</div>
+      <div className="w-full max-w-md mx-auto bg-stone-100 rounded-full h-5 overflow-hidden border-2 border-stone-200 relative shadow-inner mb-4">
+        <div
+          className={cx('h-full transition-all duration-1000 rounded-full', pct >= 70 ? 'bg-lime-500' : pct >= 45 ? 'bg-amber-400' : 'bg-rose-400')}
+          style={{ width: `${(answered / totalQ) * 100}%` }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center text-xs font-black text-stone-700">
+          {Math.round((answered / totalQ) * 100)}% הושלם
+        </div>
+      </div>
+      {answered === totalQ && (
+        <div className="mt-4 text-xl font-black text-lime-700">
+          🎉 סיימת את המעבדה! ציון סופי: {pct}%
+        </div>
+      )}
     </div>
   );
 };
 
-// --- Main Application ---
-const App = () => {
+// =========================
+// App
+// =========================
+export default function App() {
   const [scores, setScores] = useState({});
-  const totalQuestions = 21; // סך כל השאלות במעבדה
+  const totalEarned = Object.values(scores).reduce((s, e) => s + e.earned, 0);
 
-  const handleAnswer = (qNum, isCorrect, points) => {
-    setScores(prev => ({
-      ...prev,
-      [qNum]: { isCorrect, points }
-    }));
-  };
-
-  const currentScore = Object.values(scores).reduce((acc, curr) => acc + (curr.isCorrect ? curr.points : 0), 0);
+  const handleScore = (qNum, earned, max) =>
+    setScores(prev => ({ ...prev, [qNum]: { earned, max } }));
 
   return (
-    <div className="rtl min-h-screen bg-orange-50/20 text-stone-900 font-sans p-2 md:p-6 relative">
+    <div dir="rtl" className="rtl min-h-screen bg-[#f5f3ef] text-stone-900 p-2 md:p-6 pb-28 relative">
       <style>{customStyles}</style>
-      
-      {/* תגית הציון הצפה */}
-      <div className="fixed bottom-4 left-4 bg-white/95 backdrop-blur border-2 border-amber-200 p-3 rounded-xl shadow-xl z-50 flex flex-col items-center min-w-[80px]">
-        <span className="text-[10px] md:text-xs text-stone-500 font-bold mb-1 uppercase tracking-wide">ציון ביניים</span>
-        <span className="text-xl md:text-2xl font-black text-amber-700">{currentScore}</span>
+
+      {/* ניקוד צף */}
+      <div className="fixed bottom-5 left-5 bg-white/90 backdrop-blur-md border-4 border-amber-400 p-3.5 rounded-2xl shadow-2xl z-50 flex flex-col items-center min-w-[90px] hover:scale-105 transition-transform cursor-default">
+        <span className="text-[10px] text-stone-500 font-black mb-0.5 uppercase tracking-wide">ניקוד</span>
+        <span className="text-3xl font-black text-amber-700">{totalEarned}</span>
       </div>
 
-      <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-amber-100">
-        <header className="bg-gradient-to-l from-stone-800 via-amber-800 to-orange-700 text-white p-6 md:p-8 text-center shadow-lg">
-          <h1 className="text-xl md:text-3xl font-black mb-2 tracking-tight" style={{ fontFamily: "'Rubik', sans-serif" }}>מעבדה בביולוגיה: פעילות אנזים קטלאז</h1>
-          <div className="text-xs md:text-sm bg-white/10 inline-block px-4 py-1 rounded-full backdrop-blur-md border border-white/20 font-medium">בגרות 2022 בעיה 1</div>
+      <div className="max-w-5xl mx-auto bg-white/85 backdrop-blur-sm rounded-[2rem] shadow-xl overflow-hidden border border-amber-100">
+        <header className="bg-gradient-to-br from-amber-900 via-orange-900 to-amber-800 text-white p-7 md:p-11 text-center relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white to-transparent" />
+          <h1 className="text-2xl md:text-4xl font-black mb-3 relative z-10 leading-tight">
+            מעבדה אינטראקטיבית בביולוגיה
+          </h1>
+          <div className="text-yellow-300 text-xl md:text-3xl font-black mb-4 relative z-10">
+            בגרות תשע"ח 2018 — בעיה 6
+          </div>
+          <div className="text-amber-200 text-xs md:text-sm bg-white/10 inline-block px-5 py-2 rounded-full border border-white/20 font-bold relative z-10">
+            אנזימים מפרקי חלבון • עיכוב אנזימטי • יישומים בחקלאות
+          </div>
+          <div className="flex justify-center gap-6 mt-5 text-amber-200 text-xs font-bold relative z-10">
+            <span>100 נקודות סה"כ</span>
+            <span>•</span>
+            <span>15 שאלות</span>
+            <span>•</span>
+            <span>3 חלקים</span>
+          </div>
         </header>
 
-        <main className="p-4 md:p-8">
-          <PartA onAnswer={handleAnswer} />
-          <PartB onAnswer={handleAnswer} />
-          <PartC onAnswer={handleAnswer} />
-          <ScoreSummary scores={scores} totalQuestions={totalQuestions} />
+        <main className="p-4 md:p-10 text-right">
+          <PartA onScore={handleScore} />
+          <div className="w-full h-px bg-amber-200 my-12 opacity-60" />
+          <PartB onScore={handleScore} />
+          <div className="w-full h-px bg-amber-200 my-12 opacity-60" />
+          <PartC onScore={handleScore} />
+          <ScoreSummary scores={scores} />
         </main>
 
-        <footer className="bg-gradient-to-l from-stone-800 via-amber-800 to-orange-700 text-white/90 p-4 text-center text-xs md:text-sm shadow-inner mt-4">
-          כל הזכויות לתוכן הבחינה שמורות למשרד החינוך | נערך על ידי רבקה פרידלנד כהן
+        <footer className="bg-amber-950 text-amber-300 p-6 text-center text-xs font-medium">
+          <p className="mb-1">מבוסס על שאלון בחינת הבגרות במעבדה לביולוגיה (43386), קיץ תשע"ח — כל הזכויות למשרד החינוך.</p>
+          <p>נערכת על ידי רבקה פרידלנד כהן</p>
         </footer>
       </div>
     </div>
   );
-};
-
-export default App;
+}
