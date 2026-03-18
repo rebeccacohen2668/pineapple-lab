@@ -7,7 +7,13 @@ const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800;900&display=swap');
 
   * { box-sizing: border-box; }
-  body { font-family: 'Rubik', sans-serif; }
+  body { 
+    font-family: 'Rubik', sans-serif; 
+    overflow-x: hidden; 
+    width: 100%; 
+    margin: 0; 
+    padding: 0;
+  }
   .rtl { direction: rtl; }
 
   /* === טיפה נופלת מהפיפטה === */
@@ -117,8 +123,46 @@ const customStyles = `
     margin-bottom: 2rem;
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     transition: box-shadow 0.2s;
+    max-width: 100%;
   }
   .question-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.09); }
+
+  /* === התאמה למובייל (Scalable Bath) === */
+  .bath-scale-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    overflow: visible;
+  }
+  .bath-scale-content {
+    transform-origin: top center;
+    width: max-content;
+    transition: transform 0.3s ease;
+  }
+  @media (max-width: 768px) {
+    .bath-scale-content {
+      transform: scale(0.85);
+      margin-bottom: -30px;
+    }
+  }
+  @media (max-width: 640px) {
+    .bath-scale-content {
+      transform: scale(0.75);
+      margin-bottom: -50px;
+    }
+  }
+  @media (max-width: 480px) {
+    .bath-scale-content {
+      transform: scale(0.55);
+      margin-bottom: -90px;
+    }
+  }
+  @media (max-width: 380px) {
+    .bath-scale-content {
+      transform: scale(0.48);
+      margin-bottom: -105px;
+    }
+  }
 `;
 
 // =========================
@@ -127,7 +171,7 @@ const customStyles = `
 const cx = (...cls) => cls.filter(Boolean).join(' ');
 
 // =========================
-// איור אננס - מעוצב ומציאותי יותר
+// איור אננס
 // =========================
 const PineappleSVG = () => (
   <svg viewBox="0 0 120 180" className="w-32 md:w-48 h-auto drop-shadow-xl" style={{ filter: 'drop-shadow(0px 10px 15px rgba(0,0,0,0.15))' }}>
@@ -166,7 +210,7 @@ const PineappleSVG = () => (
 );
 
 // =========================
-// איור 1: השפעת הטמפרטורה
+// איור 1
 // =========================
 const proteinPaths = [
   "M18,25 C18,5 40,5 45,25 C50,45 25,50 30,70 C35,90 55,75 65,90 C75,105 95,85 85,65 C75,45 55,60 50,40 C45,20 75,20 70,5 C65,-10 35,-5 40,15 C45,35 25,45 15,35 C5,25 15,40 18,25",
@@ -206,11 +250,11 @@ const RenderProteins = ({ withLinks }) => (
 const Figure1 = () => (
   <div className="bg-white p-6 md:p-8 rounded-3xl w-full max-w-xl flex flex-col items-center shadow-lg border border-stone-200">
     <h3 className="font-black text-stone-800 mb-6 text-base md:text-lg text-center">איור 1: השפעת הטמפרטורה על קרישה של תמיסת ג'לטין</h3>
-    <div className="bg-gradient-to-r from-orange-100 to-amber-100 border-2 border-orange-300 text-orange-900 font-black px-6 py-2 rounded-full mb-8 z-10 text-sm shadow-sm">
+    <div className="bg-gradient-to-r from-orange-100 to-amber-100 border-2 border-orange-300 text-orange-900 font-black px-6 py-2 rounded-full mb-8 z-10 text-sm shadow-sm text-center">
       תמיסת החלבון ג'לטין
     </div>
     <div className="flex w-full justify-between relative px-2">
-      <div className="flex flex-col items-center w-1/2 relative px-2">
+      <div className="flex flex-col items-center w-1/2 relative px-1 md:px-2">
         <div className="text-xs md:text-sm text-stone-700 font-bold text-center h-10 leading-tight">בטמפרטורה<br/>הנמוכה מ- 10°C</div>
         <div className="flex flex-col items-center my-3 text-blue-500">
            <svg width="24" height="40" viewBox="0 0 24 40">
@@ -218,16 +262,16 @@ const Figure1 = () => (
              <path d="M4 27 L12 38 L20 27" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
            </svg>
         </div>
-        <div className="bg-blue-100 border-2 border-blue-400 text-blue-900 font-black px-5 py-1.5 rounded-full shadow-sm mb-5 text-sm">נקרשת</div>
-        <div className="w-28 h-28 md:w-32 md:h-32 bg-gradient-to-br from-[#E1EFFE] to-[#BFDBFE] border-4 border-[#93C5FD] rounded-2xl relative overflow-hidden flex items-center justify-center shadow-inner">
+        <div className="bg-blue-100 border-2 border-blue-400 text-blue-900 font-black px-3 md:px-5 py-1.5 rounded-full shadow-sm mb-5 text-[11px] md:text-sm">נקרשת</div>
+        <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-[#E1EFFE] to-[#BFDBFE] border-4 border-[#93C5FD] rounded-2xl relative overflow-hidden flex items-center justify-center shadow-inner shrink-0">
           <RenderProteins withLinks={true} />
         </div>
-        <div className="mt-3 text-center text-xs font-bold text-stone-600 leading-tight">
+        <div className="mt-3 text-center text-[10px] md:text-xs font-bold text-stone-600 leading-tight">
           קשרים בין<br/>שרשרות החלבון
         </div>
       </div>
       <div className="absolute top-0 bottom-0 left-1/2 w-px bg-stone-200 -translate-x-1/2"></div>
-      <div className="flex flex-col items-center w-1/2 relative px-2">
+      <div className="flex flex-col items-center w-1/2 relative px-1 md:px-2">
         <div className="text-xs md:text-sm text-stone-700 font-bold text-center h-10 leading-tight">בטמפרטורה<br/>הגבוהה מ- 10°C</div>
         <div className="flex flex-col items-center my-3 text-orange-500">
            <svg width="24" height="40" viewBox="0 0 24 40">
@@ -235,11 +279,11 @@ const Figure1 = () => (
              <path d="M4 27 L12 38 L20 27" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
            </svg>
         </div>
-        <div className="bg-orange-100 border-2 border-orange-400 text-orange-900 font-black px-5 py-1.5 rounded-full shadow-sm mb-5 text-sm">לא נקרשת</div>
-        <div className="w-28 h-28 md:w-32 md:h-32 bg-gradient-to-br from-[#FFEDD5] to-[#FDBA74] border-4 border-[#F97316] rounded-2xl relative overflow-hidden flex items-center justify-center shadow-inner">
+        <div className="bg-orange-100 border-2 border-orange-400 text-orange-900 font-black px-3 md:px-5 py-1.5 rounded-full shadow-sm mb-5 text-[11px] md:text-sm">לא נקרשת</div>
+        <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-[#FFEDD5] to-[#FDBA74] border-4 border-[#F97316] rounded-2xl relative overflow-hidden flex items-center justify-center shadow-inner shrink-0">
           <RenderProteins withLinks={false} />
         </div>
-        <div className="mt-3 text-center text-xs font-bold text-stone-600 leading-tight">
+        <div className="mt-3 text-center text-[10px] md:text-xs font-bold text-stone-600 leading-tight">
           שרשרות<br/>חלבון
         </div>
       </div>
@@ -251,22 +295,22 @@ const Figure1 = () => (
 // איור 2: פירוק ג'לטין
 // =========================
 const Figure2 = () => (
-  <div className="bg-white p-6 rounded-2xl mb-8 max-w-lg mx-auto flex flex-col items-center border border-stone-200 shadow-sm">
+  <div className="bg-white p-6 rounded-2xl mb-8 w-full max-w-lg mx-auto flex flex-col items-center border border-stone-200 shadow-sm">
     <h3 className="text-center font-bold text-stone-800 mb-6 text-base">
       איור 2: פירוק הג'לטין לפפטידים באמצעות אנזימים
     </h3>
-    <div className="flex flex-row items-center justify-center w-full max-w-sm">
-      <div className="bg-white border border-stone-800 text-stone-800 px-4 py-1.5 text-sm whitespace-nowrap">
+    <div className="flex flex-row items-center justify-center w-full max-w-sm flex-wrap md:flex-nowrap gap-2 md:gap-0">
+      <div className="bg-white border border-stone-800 text-stone-800 px-4 py-1.5 text-sm whitespace-nowrap text-center">
         החלבון ג'לטין
       </div>
-      <div className="flex flex-col items-center justify-center flex-1 px-2 relative -top-3">
+      <div className="flex flex-col items-center justify-center flex-1 px-2 relative md:-top-3 min-w-[120px]">
         <span className="text-sm text-stone-800 mb-1 whitespace-nowrap">אנזים מפרק חלבון</span>
         <div className="flex items-center w-full">
            <div className="flex-1 h-[1px] bg-stone-800"></div>
            <div className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[8px] border-l-stone-800 border-b-[4px] border-b-transparent"></div>
         </div>
       </div>
-      <div className="bg-white border border-stone-800 text-stone-800 px-4 py-1.5 text-sm whitespace-nowrap">
+      <div className="bg-white border border-stone-800 text-stone-800 px-4 py-1.5 text-sm whitespace-nowrap text-center">
         פפטידים
       </div>
     </div>
@@ -340,7 +384,7 @@ const Tube = ({
   }, [phase, isPouring1, isPouring2, isPouring3, pour1Color, pour2Color, pour3Color, pour1DropColor, pour2DropColor, pour3DropColor, pour1Drops, pour2Drops, pour3Drops]);
 
   return (
-    <div className="flex flex-col items-center relative w-[56px] mb-6">
+    <div className="flex flex-col items-center relative w-[56px] mb-6 shrink-0">
       <div className="relative w-full h-[155px] flex justify-center">
         <div
           className={cx(
@@ -381,7 +425,7 @@ const Tube = ({
           </div>
         </div>
       </div>
-      <div className="absolute top-[162px] bg-white border border-stone-200 rounded-xl p-2 shadow-sm w-[115px] flex flex-col items-center gap-1 z-30">
+      <div className="absolute top-[162px] bg-white border border-stone-200 rounded-xl p-2 shadow-sm w-[100px] md:w-[115px] flex flex-col items-center gap-1 z-30">
         <div className="font-black text-amber-950 text-xs border-b border-amber-200 w-full text-center pb-1 mb-1">
           מבחנה {label}
         </div>
@@ -404,9 +448,9 @@ const Tube = ({
 };
 
 // =========================
-// רכיב אמבט
+// רכיב אמבט (תומך הקטנה במובייל)
 // =========================
-const BathContainer = ({ phase, bathPhase1, bathPhase2, children, minWidth = '560px' }) => {
+const BathContainer = ({ phase, bathPhase1, bathPhase2, children }) => {
   const [timeLeft, setTimeLeft] = useState(0);
   useEffect(() => {
     if (phase === bathPhase1) setTimeLeft(5 * 60); 
@@ -425,30 +469,40 @@ const BathContainer = ({ phase, bathPhase1, bathPhase2, children, minWidth = '56
     return `${m}:${s}`;
   };
   return (
-    <div className="relative w-full max-w-5xl mx-auto bg-stone-50 border-4 border-stone-200 rounded-3xl overflow-hidden shadow-inner flex flex-col items-center overflow-x-auto">
-      <div className="h-16 w-full flex flex-col items-center justify-center mt-4 z-30" style={{ minWidth }}>
-        {phase === bathPhase1 && (
-          <>
-            <span className="text-orange-900 text-base font-black bg-white/95 px-7 py-1.5 rounded-full shadow border-2 border-orange-300 mb-1">🌡 אמבט 1 — 37°C–40°C</span>
-            <div className="text-xl font-mono font-black text-orange-700 bg-orange-100 px-4 py-0.5 rounded-full border border-orange-300">⏱️ {formatTime(timeLeft)}</div>
-          </>
-        )}
-        {phase === bathPhase2 && (
-          <>
-            <span className="text-sky-900 text-base font-black bg-white/95 px-7 py-1.5 rounded-full shadow border-2 border-sky-300 mb-1">❄ אמבט 2 — קירור מתחת ל-10°C</span>
-            <div className="text-xl font-mono font-black text-sky-700 bg-sky-100 px-4 py-0.5 rounded-full border border-sky-300">⏱️ {formatTime(timeLeft)}</div>
-          </>
-        )}
-      </div>
-      <div className="relative flex justify-center gap-6 md:gap-12 pt-3 z-10 w-full" style={{ paddingBottom: '185px', minWidth }}>{children}</div>
-      <div className={cx('absolute left-0 right-0 transition-all duration-1000 z-0', phase === bathPhase1 ? 'bg-orange-400/20 border-t-[3px] border-orange-300 opacity-100' : phase === bathPhase2 ? 'bg-sky-500/20 border-t-[3px] border-sky-300 opacity-100' : 'opacity-0 pointer-events-none h-0')} style={{ bottom: '185px', height: (phase === bathPhase1 || phase === bathPhase2) ? '110px' : '0' }}>
-        {phase === bathPhase1 && (
-          <>
-            <div className="steam" style={{ left: '20%', top: '8%' }} />
-            <div className="steam" style={{ left: '50%', top: '4%', animationDelay: '0.9s' }} />
-            <div className="steam" style={{ left: '78%', top: '12%', animationDelay: '1.7s' }} />
-          </>
-        )}
+    <div className="relative w-full max-w-5xl mx-auto bg-stone-50 border-4 border-stone-200 rounded-3xl overflow-hidden shadow-inner flex flex-col items-center">
+      <div className="bath-scale-wrapper">
+        <div className="bath-scale-content flex flex-col items-center relative pb-[185px] px-2 md:px-12">
+          
+          <div className="h-16 w-full flex flex-col items-center justify-center mt-4 z-30">
+            {phase === bathPhase1 && (
+              <>
+                <span className="text-orange-900 text-base font-black bg-white/95 px-7 py-1.5 rounded-full shadow border-2 border-orange-300 mb-1">🌡 אמבט 1 — 37°C–40°C</span>
+                <div className="text-xl font-mono font-black text-orange-700 bg-orange-100 px-4 py-0.5 rounded-full border border-orange-300">⏱️ {formatTime(timeLeft)}</div>
+              </>
+            )}
+            {phase === bathPhase2 && (
+              <>
+                <span className="text-sky-900 text-base font-black bg-white/95 px-7 py-1.5 rounded-full shadow border-2 border-sky-300 mb-1">❄ אמבט 2 — קירור מתחת ל-10°C</span>
+                <div className="text-xl font-mono font-black text-sky-700 bg-sky-100 px-4 py-0.5 rounded-full border border-sky-300">⏱️ {formatTime(timeLeft)}</div>
+              </>
+            )}
+          </div>
+          
+          <div className="relative flex justify-center gap-6 md:gap-12 pt-3 z-10 w-full">
+            {children}
+          </div>
+          
+          <div className={cx('absolute left-0 right-0 bottom-[185px] transition-all duration-1000 z-0', phase === bathPhase1 ? 'bg-orange-400/20 border-t-[3px] border-orange-300 opacity-100' : phase === bathPhase2 ? 'bg-sky-500/20 border-t-[3px] border-sky-300 opacity-100' : 'opacity-0 pointer-events-none')} style={{ height: (phase === bathPhase1 || phase === bathPhase2) ? '110px' : '0' }}>
+            {phase === bathPhase1 && (
+              <>
+                <div className="steam" style={{ left: '20%', top: '8%' }} />
+                <div className="steam" style={{ left: '50%', top: '4%', animationDelay: '0.9s' }} />
+                <div className="steam" style={{ left: '78%', top: '12%', animationDelay: '1.7s' }} />
+              </>
+            )}
+          </div>
+
+        </div>
       </div>
     </div>
   );
@@ -515,11 +569,11 @@ const MeasuringCylinder = ({ label, volume, isVisible }) => {
   );
 };
 
-const PhaseText = ({ text }) => ( <div className="bg-amber-100 text-amber-950 rounded-2xl px-6 py-3.5 font-bold text-sm md:text-base text-center mb-8 border border-amber-300 shadow-sm">{text}</div> );
+const PhaseText = ({ text }) => ( <div className="bg-amber-100 text-amber-950 rounded-2xl px-4 md:px-6 py-3.5 font-bold text-sm md:text-base text-center mb-8 border border-amber-300 shadow-sm">{text}</div> );
 
 const StepBtn = ({ label, onClick, disabled, color = 'stone' }) => {
   const colors = { amber: 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300', sky: 'bg-sky-100 hover:bg-sky-200 text-sky-900 border-sky-300', orange: 'bg-orange-400 hover:bg-orange-500 text-orange-950 border-orange-500', blue: 'bg-blue-200 hover:bg-blue-300 text-blue-950 border-blue-400', emerald: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border-emerald-400', lime: 'bg-lime-400 hover:bg-lime-500 text-lime-950 border-lime-600', rose: 'bg-stone-800 hover:bg-stone-900 text-white border-stone-700', stone: 'bg-stone-200 hover:bg-stone-300 text-stone-900 border-stone-400' };
-  return ( <button onClick={onClick} disabled={disabled} className={cx('px-4 py-2 rounded-xl font-bold border-2 text-xs transition-colors shadow-sm disabled:opacity-35 disabled:cursor-not-allowed', colors[color] || colors.stone)}>{label}</button> );
+  return ( <button onClick={onClick} disabled={disabled} className={cx('px-3 md:px-4 py-2 rounded-xl font-bold border-2 text-xs transition-colors shadow-sm disabled:opacity-35 disabled:cursor-not-allowed', colors[color] || colors.stone)}>{label}</button> );
 };
 
 // =========================
@@ -540,17 +594,17 @@ const PartA = ({ onScore }) => {
   return (
     <section className="mb-16">
       <h2 className="text-xl md:text-2xl font-black mb-6 text-amber-900 border-b-4 border-amber-300 pb-2 inline-block">חלק א' — השפעת מיצוי אננס על החלבון ג'לטין</h2>
-      <div className="bg-white p-5 rounded-2xl border border-amber-100 mb-6 text-stone-800 text-sm md:text-base leading-relaxed font-medium shadow-sm">
+      <div className="bg-white p-4 md:p-5 rounded-2xl border border-amber-100 mb-6 text-stone-800 text-sm md:text-base leading-relaxed font-medium shadow-sm">
         <p className="mb-3">בתעשיית המזון משתמשים בחלבון ג'לטין להכנת קינוחים, שכן הג'לטין נקרש בטמפרטורה הנמוכה מ-10°C ויוצר מרקם ג'לי. בטמפרטורות נמוכות נוצרים קשרים בין שרשרות החלבון עד שנוצר מבנה רשת, כפי שמתואר באיור 1.</p>
         <p>בניסוי זה נבדוק את השפעת אנזימים מפרקי חלבון (פרוטאזות) על תהליך הקרישה.</p>
       </div>
-      <div className="bg-white p-6 rounded-2xl border-2 border-amber-100 mb-6 max-w-4xl mx-auto shadow-sm flex flex-col md:flex-row items-center justify-center gap-8">
-        <div className="flex-shrink-0 flex justify-center w-32 md:w-48"><PineappleSVG /></div>
+      <div className="bg-white p-4 md:p-6 rounded-2xl border-2 border-amber-100 mb-6 max-w-4xl mx-auto shadow-sm flex flex-col md:flex-row items-center justify-center gap-8">
+        <div className="flex-shrink-0 flex justify-center w-24 md:w-48"><PineappleSVG /></div>
         <div className="flex-1 w-full max-w-lg flex justify-center"><Figure1 /></div>
       </div>
       <InfoBox title="💡 לידיעתך:">טריפסין הוא אנזים המזרז פירוק חלבונים, ובהם ג'לטין, לשרשרות קצרות הנקראות <strong>פפטידים. הפפטידים אינם נקרשים בטמפרטורה הנמוכה מ-10°C</strong> (שכן הם קצרים מדי ליצירת מבנה רשת).</InfoBox>
       <Figure2 />
-      <div className="bg-white border-2 border-amber-200 rounded-3xl shadow-md p-5 md:p-8 mb-8">
+      <div className="bg-white border-2 border-amber-200 rounded-3xl shadow-md p-4 md:p-8 mb-8">
         <h3 className="font-black text-amber-900 text-lg mb-5 text-center">מעבדת הניסוי — חלק א'</h3>
         <PhaseText text={phaseLabels[phase]} />
         <BathContainer phase={phase} bathPhase1={4} bathPhase2={5}>
@@ -573,7 +627,7 @@ const PartA = ({ onScore }) => {
             contents={['2 מ"ל ג\'לטין', '1 מ"ל טריפסין']}
           />
         </BathContainer>
-        <div className="flex flex-wrap justify-center gap-2.5 mt-8">
+        <div className="flex flex-wrap justify-center gap-2 mt-8">
           <StepBtn label="1: ג'לטין" onClick={() => setPhase(1)} disabled={phase >= 1} color="amber" />
           <StepBtn label="2: הוספת חומרים" onClick={() => setPhase(2)} disabled={phase < 1 || phase >= 2} color="sky" />
           <StepBtn label="3: ערבוב" onClick={() => setPhase(3)} disabled={phase < 2 || phase >= 3} color="stone" />
@@ -582,37 +636,39 @@ const PartA = ({ onScore }) => {
           <StepBtn label="6: הטיה" onClick={() => setPhase(6)} disabled={phase < 5 || phase >= 6} color="emerald" />
           <StepBtn label="↺ איפוס" onClick={() => setPhase(0)} color="rose" />
         </div>
-        <div className="mt-10 overflow-x-auto bg-amber-50/40 p-5 rounded-2xl border border-amber-100">
-          <h4 className="font-black text-center text-amber-900 mb-1 text-base">טבלה 1</h4>
-          <p className="text-center text-xs text-stone-500 mb-3">הטבלה מתמלאת אוטומטית לפי שלבי הניסוי</p>
-          <table className="w-full text-center border-collapse bg-white rounded-2xl overflow-hidden text-xs md:text-sm border border-amber-200 shadow-sm">
-            <thead className="bg-stone-100 text-stone-700 font-bold">
-              <tr>
-                <th className="p-2.5 border border-stone-200">מבחנה</th>
-                <th className="p-2.5 border border-stone-200">ג'לטין (מ"ל)</th>
-                <th className="p-2.5 border border-stone-200">מיצוי אננס (מ"ל)</th>
-                <th className="p-2.5 border border-stone-200">טריפסין (מ"ל)</th>
-                <th className="p-2.5 border border-stone-200">מים (מ"ל)</th>
-                <th className="p-2.5 border border-stone-200 bg-amber-100 text-amber-900 font-black">תוצאת קרישה</th>
-              </tr>
-            </thead>
-            <tbody className="text-stone-700 font-medium">
-              {[
-                { id: 'A', j: '2', p: '0', t: '1', w: '0', r: 'לא נקרש / −', rc: 'text-rose-600' },
-                { id: 'B', j: '2', p: '1', t: '0', w: '0', r: 'לא נקרש / −', rc: 'text-rose-600' },
-                { id: 'C', j: '2', p: '0', t: '0', w: '1', r: 'נקרש / +',    rc: 'text-lime-700' },
-              ].map(row => (
-                <tr key={row.id} className="border-b border-amber-50 hover:bg-amber-50 transition-colors">
-                  <td className="p-2.5 border border-stone-100 font-black bg-stone-50">{row.id}</td>
-                  <td className="p-2.5 border border-stone-100">{phase >= 1 ? row.j : '—'}</td>
-                  <td className="p-2.5 border border-stone-100">{phase >= 2 ? row.p : '—'}</td>
-                  <td className="p-2.5 border border-stone-100">{phase >= 2 ? row.t : '—'}</td>
-                  <td className="p-2.5 border border-stone-100">{phase >= 2 ? row.w : '—'}</td>
-                  <td className={cx('p-2.5 border border-stone-100 font-bold', row.rc)}>{phase >= 6 ? row.r : '—'}</td>
+        <div className="w-full max-w-full">
+          <div className="mt-10 overflow-x-auto bg-amber-50/40 p-4 md:p-5 rounded-2xl border border-amber-100 max-w-full">
+            <h4 className="font-black text-center text-amber-900 mb-1 text-base">טבלה 1</h4>
+            <p className="text-center text-xs text-stone-500 mb-3">הטבלה מתמלאת אוטומטית לפי שלבי הניסוי</p>
+            <table className="w-full text-center border-collapse bg-white rounded-2xl overflow-hidden text-xs md:text-sm border border-amber-200 shadow-sm" style={{ minWidth: '550px' }}>
+              <thead className="bg-stone-100 text-stone-700 font-bold">
+                <tr>
+                  <th className="p-2.5 border border-stone-200">מבחנה</th>
+                  <th className="p-2.5 border border-stone-200">ג'לטין (מ"ל)</th>
+                  <th className="p-2.5 border border-stone-200">מיצוי אננס (מ"ל)</th>
+                  <th className="p-2.5 border border-stone-200">טריפסין (מ"ל)</th>
+                  <th className="p-2.5 border border-stone-200">מים (מ"ל)</th>
+                  <th className="p-2.5 border border-stone-200 bg-amber-100 text-amber-900 font-black">תוצאת קרישה</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="text-stone-700 font-medium">
+                {[
+                  { id: 'A', j: '2', p: '0', t: '1', w: '0', r: 'לא נקרש / −', rc: 'text-rose-600' },
+                  { id: 'B', j: '2', p: '1', t: '0', w: '0', r: 'לא נקרש / −', rc: 'text-rose-600' },
+                  { id: 'C', j: '2', p: '0', t: '0', w: '1', r: 'נקרש / +',    rc: 'text-lime-700' },
+                ].map(row => (
+                  <tr key={row.id} className="border-b border-amber-50 hover:bg-amber-50 transition-colors">
+                    <td className="p-2.5 border border-stone-100 font-black bg-stone-50">{row.id}</td>
+                    <td className="p-2.5 border border-stone-100">{phase >= 1 ? row.j : '—'}</td>
+                    <td className="p-2.5 border border-stone-100">{phase >= 2 ? row.p : '—'}</td>
+                    <td className="p-2.5 border border-stone-100">{phase >= 2 ? row.t : '—'}</td>
+                    <td className="p-2.5 border border-stone-100">{phase >= 2 ? row.w : '—'}</td>
+                    <td className={cx('p-2.5 border border-stone-100 font-bold', row.rc)}>{phase >= 6 ? row.r : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
       <MCQ qNum="61א" points={5} onScore={onScore}
@@ -624,7 +680,7 @@ const PartA = ({ onScore }) => {
           "מעקב אחר שינוי נפח תמיסת הג'לטין במבחנות כתוצאה מהוספה של מיצוי אננס לאורך זמן ממושך."
         ]}
         correctIndex={1}
-        explanation={`כותרת טבלה תקינה בביולוגיה צריכה כלול את המשתנה הבלתי תלוי (החומרים שהוספו - טריפסין/אננס/מים) והמשתנה התלוי (התוצאה הנמדדת - קרישת הג'לטין).`}
+        explanation={`כותרת טבלה תקינה בביולוגיה צריכה לכלול את המשתנה הבלתי תלוי (החומרים שהוספו - טריפסין/אננס/מים) והמשתנה התלוי (התוצאה הנמדדת - קרישת הג'לטין).`}
       />
       <MCQ qNum="61ב" points={5} onScore={onScore}
         question="על סמך תוצאות שלב 6, איזה מהמשפטים הבאים מתאר נכונה את מצב הקרישה בכל אחת מהמבחנות A, B, C?"
@@ -656,7 +712,7 @@ const PartB = ({ onScore }) => {
   const phaseLabels = [
     'לחצו כדי להתחיל את ניסוי העיכוב.',
     'שלב 1: הוספת 1 מ"ל מיצוי אננס למבחנות 1-4 | הוספת 1 מ"ל מים למבחנה 5.',
-    'שלב 2: הוספת טיפות מעכב (נחושת גופרתית) בריכוזים יורדים למבחנות 1-3 | מים ל-4-5. (טיפות תכלת)',
+    'שלב 2: הוספת 2 טיפות מעכב (נחושת גופרתית) בריכוזים יורדים למבחנות 1-3 | טיפות מים ל-4-5.',
     'שלב 3: הוספת 2 מ"ל תמיסת ג\'לטין לכל המבחנות. (טיפות תכלת)',
     'שלב 4: ערבוב כל החומרים.',
     'שלב 5: אמבט 1 (37°C–40°C) — 5 דקות. (קווי קרישה לא נראים עדיין)',
@@ -704,7 +760,7 @@ const PartB = ({ onScore }) => {
   return (
     <section className="mb-16">
       <h2 className="text-xl md:text-2xl font-black mb-6 text-amber-900 border-b-4 border-amber-300 pb-2 inline-block">חלק ב' — עיכוב פעילות האנזים ממיצוי אננס</h2>
-      <div className="bg-white p-5 rounded-2xl border border-amber-100 mb-6 text-stone-800 text-sm md:text-base leading-relaxed font-medium shadow-sm">
+      <div className="bg-white p-4 md:p-5 rounded-2xl border border-amber-100 mb-6 text-stone-800 text-sm md:text-base leading-relaxed font-medium shadow-sm">
         <p>בחלק זה נבדוק כיצד ריכוזים שונים של <strong>נחושת גופרתית</strong> (מעכב) משפיעים על פעילות האנזים ממיצוי האננס. ככל שהמעכב יעיל יותר — כך יישאר יותר ג'לטין שלם שייקרש, ופחות פפטידים יווצרו.</p>
       </div>
       <InfoBox title="🧪 לידיעתך 2:">נחושת גופרתית מעכבת את פעילות האנזים המפרק חלבון. <strong>המדד לפעילות האנזים: נפח הנוזל (פפטידים) שאינו נקרש ונאסף מהמבחנה.</strong></InfoBox>
@@ -716,10 +772,10 @@ const PartB = ({ onScore }) => {
         explanation={`בכל שלב מבצעים מיהול עשרוני (פי 10). \nמבחנה a: 1 מ"ל (מתוך 10 מ"ל סה"כ) שווה למיהול 1:10 מהתמיסה המקורית (2%) ולכן 2% / 10 = 0.2%.\nמבחנה b: 1 מ"ל ממבחנה a (מתוך 10 מ"ל סה"כ) שווה למיהול 1:10 מריכוז a (0.2%) ולכן 0.2% / 10 = 0.02%.`}
       />
       
-      <div className="bg-white border-2 border-amber-200 rounded-3xl shadow-md p-5 md:p-8 mb-8 mt-8">
+      <div className="bg-white border-2 border-amber-200 rounded-3xl shadow-md p-4 md:p-8 mb-8 mt-8">
         <h3 className="font-black text-amber-900 text-lg mb-5 text-center">מעבדת הניסוי — חלק ב'</h3>
         <PhaseText text={phaseLabels[phase]} />
-        <BathContainer phase={phase} bathPhase1={5} bathPhase2={6} minWidth="640px">
+        <BathContainer phase={phase} bathPhase1={5} bathPhase2={6}>
           <Tube label="1" phase={phase} gelPhase={6}
             pour1Phase={1} pour1Color="bg-yellow-400" pour1Vol={20}
             pour2Phase={2} pour2Color="bg-yellow-400" pour2Vol={10} pour2DropColor="bg-blue-600" pour2Drops={2}
@@ -752,13 +808,13 @@ const PartB = ({ onScore }) => {
           />
         </BathContainer>
         {phase >= 8 && (
-          <div className="rounded-3xl border-4 border-stone-200 bg-stone-50 shadow-inner flex flex-wrap justify-center items-end py-10 gap-8 mb-6 mt-8">
+          <div className="rounded-3xl border-4 border-stone-200 bg-stone-50 shadow-inner flex flex-wrap justify-center items-end py-10 gap-4 sm:gap-8 mb-6 mt-8">
             {[{ l: '1', v: 0.0 }, { l: '2', v: 1.0 }, { l: '3', v: 2.0 }, { l: '4', v: 3.0 }, { l: '5', v: 0.0 }].map(m => (
               <MeasuringCylinder key={m.l} label={m.l} volume={m.v} isVisible={phase >= 8} />
             ))}
           </div>
         )}
-        <div className="flex flex-wrap justify-center gap-2.5 mt-8">
+        <div className="flex flex-wrap justify-center gap-2 mt-8">
           <StepBtn label="1: מיצוי אננס / מים" onClick={() => setPhase(1)} disabled={phase >= 1} color="sky" />
           <StepBtn label="2: הוספת מעכב" onClick={() => setPhase(2)} disabled={phase < 1 || phase >= 2} color="blue" />
           <StepBtn label="3: ג'לטין" onClick={() => setPhase(3)} disabled={phase < 2 || phase >= 3} color="amber" />
@@ -769,55 +825,57 @@ const PartB = ({ onScore }) => {
           <StepBtn label="8: משורה" onClick={() => setPhase(8)} disabled={phase < 7 || phase >= 8} color="emerald" />
           <StepBtn label="↺ איפוס" onClick={() => setPhase(0)} color="rose" />
         </div>
-        <div className="mt-10 overflow-x-auto bg-amber-50/40 p-5 rounded-2xl border border-amber-100">
-          <h4 className="font-black text-center text-amber-900 mb-4 text-base">טבלה 3</h4>
-          <p className="text-center text-xs text-stone-500 mb-3">הטבלה מתמלאת אוטומטית לפי שלבי הניסוי</p>
-          <table className="w-full text-center border-collapse bg-white rounded-2xl overflow-hidden text-xs md:text-sm border border-amber-200 shadow-sm" style={{ minWidth: '650px' }}>
-            <thead className="bg-amber-100 text-amber-900 font-bold text-[11px]">
-              <tr>
-                <th rowSpan="3" className="p-2 border border-amber-200 align-middle">המבחנה</th>
-                <th colSpan="3" className="p-2 border border-amber-200">שאלה 63</th>
-                <th className="p-2 border border-amber-200">סעיף כג</th>
-                <th className="p-2 border border-amber-200">סעיף כו</th>
-                <th className="p-2 border border-amber-200">סעיף כח</th>
-              </tr>
-              <tr>
-                <th className="p-1 border border-amber-200 font-medium">א</th>
-                <th className="p-1 border border-amber-200 font-medium">ב</th>
-                <th className="p-1 border border-amber-200 font-medium">ג</th>
-                <th className="p-1 border border-amber-200 font-medium">ד</th>
-                <th className="p-1 border border-amber-200 font-medium">ה</th>
-                <th className="p-1 border border-amber-200 font-medium">ו</th>
-              </tr>
-              <tr>
-                <th className="p-2 border border-amber-200 font-bold w-24">ריכוז התחלתי של תמיסת נחושת גופרתית (%)</th>
-                <th className="p-2 border border-amber-200 font-bold w-20">נפח מיצוי האננס (מ"ל)</th>
-                <th className="p-2 border border-amber-200 font-bold w-16">נפח מים (מ"ל)</th>
-                <th className="p-2 border border-amber-200 font-bold w-20">נפח תמיסת הג'לטין (מ"ל)</th>
-                <th className="p-2 border border-amber-200 font-bold w-32">תוצאות: מידת הקרישה בטמפרטורה נמוכה מ-10°C (נקרש/נקרש חלקית/לא נקרש)</th>
-                <th className="p-2 border border-amber-200 font-bold w-32">תוצאות: נפח תמיסת הפפטידים (תוצר פירוק הג'לטין) (מ"ל)</th>
-              </tr>
-            </thead>
-            <tbody className="text-stone-700 font-medium">
-              {[
-                { id: 1, c: '2',    p: '1', w: '0', g: '2', status: 'נקרש',       r: '0' },
-                { id: 2, c: '0.2',  p: '1', w: '0', g: '2', status: 'נקרש חלקית', r: '1' },
-                { id: 3, c: '0.02', p: '1', w: '0', g: '2', status: 'נקרש חלקית', r: '2' },
-                { id: 4, c: '0',    p: '1', w: '0', g: '2', status: 'לא נקרש',    r: '3' },
-                { id: 5, c: '0',    p: '0', w: '1', g: '2', status: 'נקרש',       r: '0' },
-              ].map(row => (
-                <tr key={row.id} className="border-b border-amber-50 hover:bg-amber-50 transition-colors text-[11px]">
-                  <td className="p-2 border border-amber-100 font-black bg-stone-50">{row.id}</td>
-                  <td className="p-2 border border-amber-100">{phase >= 2 ? row.c : '—'}</td>
-                  <td className="p-2 border border-amber-100">{phase >= 1 ? row.p : '—'}</td>
-                  <td className="p-2 border border-amber-100">{phase >= 1 ? row.w : '—'}</td>
-                  <td className="p-2 border border-amber-100">{phase >= 3 ? row.g : '—'}</td>
-                  <td className="p-2 border border-amber-100 font-bold">{phase >= 6 ? row.status : '—'}</td>
-                  <td className="p-2 border border-amber-100 font-black text-amber-700">{phase >= 8 ? row.r : '—'}</td>
+        <div className="w-full max-w-full">
+          <div className="mt-10 overflow-x-auto bg-amber-50/40 p-4 md:p-5 rounded-2xl border border-amber-100 max-w-full">
+            <h4 className="font-black text-center text-amber-900 mb-4 text-base">טבלה 3</h4>
+            <p className="text-center text-xs text-stone-500 mb-3">הטבלה מתמלאת אוטומטית לפי שלבי הניסוי</p>
+            <table className="w-full text-center border-collapse bg-white rounded-2xl overflow-hidden text-xs md:text-sm border border-amber-200 shadow-sm" style={{ minWidth: '650px' }}>
+              <thead className="bg-amber-100 text-amber-900 font-bold text-[11px]">
+                <tr>
+                  <th rowSpan="3" className="p-2 border border-amber-200 align-middle">המבחנה</th>
+                  <th colSpan="3" className="p-2 border border-amber-200">שאלה 63</th>
+                  <th className="p-2 border border-amber-200">סעיף כג</th>
+                  <th className="p-2 border border-amber-200">סעיף כו</th>
+                  <th className="p-2 border border-amber-200">סעיף כח</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+                <tr>
+                  <th className="p-1 border border-amber-200 font-medium">א</th>
+                  <th className="p-1 border border-amber-200 font-medium">ב</th>
+                  <th className="p-1 border border-amber-200 font-medium">ג</th>
+                  <th className="p-1 border border-amber-200 font-medium">ד</th>
+                  <th className="p-1 border border-amber-200 font-medium">ה</th>
+                  <th className="p-1 border border-amber-200 font-medium">ו</th>
+                </tr>
+                <tr>
+                  <th className="p-2 border border-amber-200 font-bold w-24">ריכוז התחלתי של תמיסת נחושת גופרתית (%)</th>
+                  <th className="p-2 border border-amber-200 font-bold w-20">נפח מיצוי האננס (מ"ל)</th>
+                  <th className="p-2 border border-amber-200 font-bold w-16">נפח מים (מ"ל)</th>
+                  <th className="p-2 border border-amber-200 font-bold w-20">נפח תמיסת הג'לטין (מ"ל)</th>
+                  <th className="p-2 border border-amber-200 font-bold w-32">תוצאות: מידת הקרישה בטמפרטורה נמוכה מ-10°C (נקרש/נקרש חלקית/לא נקרש)</th>
+                  <th className="p-2 border border-amber-200 font-bold w-32">תוצאות: נפח תמיסת הפפטידים (תוצר פירוק הג'לטין) (מ"ל)</th>
+                </tr>
+              </thead>
+              <tbody className="text-stone-700 font-medium">
+                {[
+                  { id: 1, c: '2',    p: '1', w: '0', g: '2', status: 'נקרש',       r: '0' },
+                  { id: 2, c: '0.2',  p: '1', w: '0', g: '2', status: 'נקרש חלקית', r: '1' },
+                  { id: 3, c: '0.02', p: '1', w: '0', g: '2', status: 'נקרש חלקית', r: '2' },
+                  { id: 4, c: '0',    p: '1', w: '0', g: '2', status: 'לא נקרש',    r: '3' },
+                  { id: 5, c: '0',    p: '0', w: '1', g: '2', status: 'נקרש',       r: '0' },
+                ].map(row => (
+                  <tr key={row.id} className="border-b border-amber-50 hover:bg-amber-50 transition-colors text-[11px]">
+                    <td className="p-2 border border-amber-100 font-black bg-stone-50">{row.id}</td>
+                    <td className="p-2 border border-amber-100">{phase >= 2 ? row.c : '—'}</td>
+                    <td className="p-2 border border-amber-100">{phase >= 1 ? row.p : '—'}</td>
+                    <td className="p-2 border border-amber-100">{phase >= 1 ? row.w : '—'}</td>
+                    <td className="p-2 border border-amber-100">{phase >= 3 ? row.g : '—'}</td>
+                    <td className="p-2 border border-amber-100 font-bold">{phase >= 6 ? row.status : '—'}</td>
+                    <td className="p-2 border border-amber-100 font-black text-amber-700">{phase >= 8 ? row.r : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
       <MCQ qNum="64ב" points={5} onScore={onScore}
@@ -873,33 +931,35 @@ const PartC = ({ onScore }) => {
   return (
     <section className="mb-8">
       <h2 className="text-xl md:text-2xl font-black mb-6 text-amber-900 border-b-4 border-amber-300 pb-2 inline-block">חלק ג' — ניתוח ניסויים: שימוש בפטרייה להדברת מזיקים</h2>
-      <div className="bg-white p-5 rounded-2xl border border-amber-100 mb-6 text-stone-800 text-sm md:text-base leading-relaxed font-medium shadow-sm">
+      <div className="bg-white p-4 md:p-5 rounded-2xl border border-amber-100 mb-6 text-stone-800 text-sm md:text-base leading-relaxed font-medium shadow-sm">
         <p className="mb-3">חרקים מסוימים גורמים נזקים לגידולים חקלאיים. בשל המודעות הגוברת לאיכות הסביבה ולבריאות האדם, מדענים מנסים למצוא דרכים להדביר מזיקים באמצעים ידידותיים לסביבה. אחת הדרכים היא שימוש בפטרייה <em>Beauveria bassiana</em>. הפטרייה מייצרת אנזימים מפרקי חלבונים הגורמים לפירוק המעטה הקשיח של גוף החרקים, המורכב מרב-סוכר ומחלבון. באמצעות הפירוק האנזימטי של המעטה הפטרייה חודרת לגופו של החרק, מפרישה חומרים רעילים הגורמים למותו.</p>
       </div>
-      <div className="bg-white border-2 border-amber-200 rounded-3xl shadow-md p-5 md:p-8 mb-8">
+      <div className="bg-white border-2 border-amber-200 rounded-3xl shadow-md p-4 md:p-8 mb-8">
         <h4 className="font-black text-amber-900 text-lg mb-4">ניסוי 1: השוואת שני זני הפטרייה</h4>
         <p className="text-stone-700 text-sm mb-5 leading-relaxed font-medium">חוקרים חשפו שתי קבוצות של חרקים לנוזל המכיל תאי פטרייה משני זנים. כל קבוצה של חרקים נחשפה לזן אחר של הפטרייה. במשך 18 ימים בדקו החוקרים את שיעור תמותת החרקים משתי הקבוצות.<br/>(בנוסף, נערך טיפול בקרה שבו חרקים לא נחשפו לפטרייה כלל).</p>
         <div className="flex flex-col items-center justify-center">
-          <div className="overflow-x-auto w-full max-w-lg">
-            <h5 className="font-bold text-center text-amber-900 mb-3 text-sm">טבלה 4: תוצאות הניסוי</h5>
-            <table className="w-full text-center border-collapse bg-white rounded-xl overflow-hidden text-xs md:text-sm border border-amber-200 shadow-sm">
-              <thead className="bg-amber-100 text-amber-900 font-bold">
-                <tr>
-                  <th className="p-3 border border-amber-200">הזמן שעבר מן החשיפה (ימים)</th>
-                  <th className="p-3 border border-amber-200 text-rose-700">שיעור תמותת החרקים (%)<br/>פטרייה מזן א'</th>
-                  <th className="p-3 border border-amber-200 text-sky-700">שיעור תמותת החרקים (%)<br/>פטרייה מזן ב'</th>
-                </tr>
-              </thead>
-              <tbody className="text-stone-700 font-bold">
-                {[[4,15,30],[8,35,60],[12,45,90],[16,60,97],[18,62,97]].map(([d,a,b]) => (
-                  <tr key={d} className="border-b border-amber-100 hover:bg-amber-50 transition-colors">
-                    <td className="p-2.5 border border-amber-100 bg-amber-50">{d}</td>
-                    <td className="p-2.5 border border-amber-100 text-rose-600">{a}</td>
-                    <td className="p-2.5 border border-amber-100 text-sky-600">{b}</td>
+          <div className="w-full max-w-full">
+            <div className="overflow-x-auto w-full max-w-lg mx-auto">
+              <h5 className="font-bold text-center text-amber-900 mb-3 text-sm">טבלה 4: תוצאות הניסוי</h5>
+              <table className="w-full text-center border-collapse bg-white rounded-xl overflow-hidden text-xs md:text-sm border border-amber-200 shadow-sm">
+                <thead className="bg-amber-100 text-amber-900 font-bold">
+                  <tr>
+                    <th className="p-3 border border-amber-200">הזמן שעבר מן החשיפה (ימים)</th>
+                    <th className="p-3 border border-amber-200 text-rose-700">שיעור תמותת החרקים (%)<br/>פטרייה מזן א'</th>
+                    <th className="p-3 border border-amber-200 text-sky-700">שיעור תמותת החרקים (%)<br/>פטרייה מזן ב'</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="text-stone-700 font-bold">
+                  {[[4,15,30],[8,35,60],[12,45,90],[16,60,97],[18,62,97]].map(([d,a,b]) => (
+                    <tr key={d} className="border-b border-amber-100 hover:bg-amber-50 transition-colors">
+                      <td className="p-2.5 border border-amber-100 bg-amber-50">{d}</td>
+                      <td className="p-2.5 border border-amber-100 text-rose-600">{a}</td>
+                      <td className="p-2.5 border border-amber-100 text-sky-600">{b}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -927,7 +987,7 @@ const PartC = ({ onScore }) => {
         correctIndex={1}
         explanation={`חשיבות הבקרה היא לשמש בסיס להשוואה. כך ניתן לוודא שהתמותה נגרמה מהטיפול (הפטרייה) ולא מגורמים חיצוניים אחרים או מוות טבעי.`}
       />
-      <div className="bg-yellow-50 p-5 rounded-3xl mb-8 border-2 border-yellow-200 shadow-sm mt-8">
+      <div className="bg-yellow-50 p-4 md:p-5 rounded-3xl mb-8 border-2 border-yellow-200 shadow-sm mt-8">
         <h4 className="font-black text-amber-900 text-lg mb-3">ניסוי 2:</h4>
         <p className="text-stone-800 text-sm md:text-base leading-relaxed font-medium">החוקרים רצו לבדוק ממה נובעים ההבדלים שנמצאו בשיעור תמותת החרקים. לשם כך, החוקרים גידלו את שני הזנים של הפטרייה, כל זן בנפרד, על מצע גידול ובו החלבון ג'לטין. החוקרים מדדו את רמת הפירוק של החלבון.<br/><strong>נמצא כי רמת הפירוק של החלבון ג'לטין בנוכחות זן ב' הייתה גבוהה יותר מרמת הפירוק שלו בנוכחות זן א'.</strong></p>
       </div>
@@ -958,7 +1018,7 @@ const ScoreSummary = ({ scores }) => {
   const possible = 100;
   const pct = Math.round((earned / possible) * 100);
   return (
-    <div className="bg-white border-4 border-amber-300 p-8 rounded-3xl shadow-xl mt-12 text-center relative overflow-hidden">
+    <div className="bg-white border-4 border-amber-300 p-8 rounded-3xl shadow-xl mt-12 text-center relative overflow-hidden w-full">
       <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-orange-400 via-amber-400 to-lime-400" />
       <h2 className="text-2xl md:text-3xl font-black text-amber-900 mb-5">סיכום הניקוד</h2>
       <div className="text-6xl md:text-7xl font-black text-stone-800 mb-1">{earned}</div>
@@ -977,21 +1037,21 @@ export default function App() {
   const totalEarned = Object.values(scores).reduce((s, e) => s + e.earned, 0);
   const handleScore = (qNum, earned, max) => setScores(prev => ({ ...prev, [qNum]: { earned, max } }));
   return (
-    <div dir="rtl" className="rtl min-h-screen bg-[#f5f3ef] text-stone-900 p-2 md:p-6 pb-28 relative">
+    <div dir="rtl" className="rtl min-h-screen w-full overflow-x-hidden bg-[#f5f3ef] text-stone-900 p-2 md:p-6 pb-28 relative">
       <style>{customStyles}</style>
       <div className="fixed bottom-5 left-5 bg-white/90 backdrop-blur-md border-4 border-amber-400 p-3.5 rounded-2xl shadow-2xl z-50 flex flex-col items-center min-w-[90px] hover:scale-105 transition-transform cursor-default">
         <span className="text-[10px] text-stone-500 font-black mb-0.5 uppercase tracking-wide">ניקוד</span>
         <span className="text-3xl font-black text-amber-700">{totalEarned}</span>
       </div>
-      <div className="max-w-5xl mx-auto bg-white/85 backdrop-blur-sm rounded-[2rem] shadow-xl overflow-hidden border border-amber-100">
-        <header className="bg-gradient-to-br from-amber-900 via-orange-900 to-amber-800 text-white p-7 md:p-11 text-center relative overflow-hidden">
+      <div className="max-w-5xl w-full mx-auto bg-white/85 backdrop-blur-sm rounded-[2rem] shadow-xl overflow-hidden border border-amber-100">
+        <header className="bg-gradient-to-br from-amber-900 via-orange-900 to-amber-800 text-white p-7 md:p-11 text-center relative overflow-hidden w-full">
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white to-transparent" />
           <h1 className="text-2xl md:text-4xl font-black mb-3 relative z-10 leading-tight">מעבדה אינטראקטיבית בביולוגיה</h1>
           <div className="text-yellow-300 text-xl md:text-3xl font-black mb-4 relative z-10">בגרות תשע"ח 2018 — בעיה 6</div>
           <div className="text-amber-200 text-xs md:text-sm bg-white/10 inline-block px-5 py-2 rounded-full border border-white/20 font-bold relative z-10">אנזימים מפרקי חלבון • עיכוב אנזימטי • יישומים בחקלאות</div>
-          <div className="flex justify-center gap-6 mt-5 text-amber-200 text-xs font-bold relative z-10"><span>100 נקודות סה"כ</span><span>•</span><span>18 שאלות</span><span>•</span><span>3 חלקים</span></div>
+          <div className="flex flex-wrap justify-center gap-2 md:gap-6 mt-5 text-amber-200 text-xs font-bold relative z-10"><span>100 נקודות סה"כ</span><span className="hidden md:inline">•</span><span>18 שאלות</span><span className="hidden md:inline">•</span><span>3 חלקים</span></div>
         </header>
-        <main className="p-4 md:p-10 text-right">
+        <main className="p-3 md:p-10 text-right w-full">
           <PartA onScore={handleScore} />
           <div className="w-full h-px bg-amber-200 my-12 opacity-60" />
           <PartB onScore={handleScore} />
@@ -999,7 +1059,7 @@ export default function App() {
           <PartC onScore={handleScore} />
           <ScoreSummary scores={scores} />
         </main>
-        <footer className="bg-amber-950 text-amber-300 p-6 text-center text-xs font-medium">
+        <footer className="bg-amber-950 text-amber-300 p-6 text-center text-xs font-medium w-full">
           <p className="mb-1">מבוסס על שאלון בחינת הבגרות במעבדה לביולוגיה (43386), קיץ תשע"ח — כל הזכויות למשרד החינוך.</p>
           <p>נערכת על ידי רבקה פרידלנד כהן</p>
         </footer>
