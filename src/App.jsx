@@ -251,20 +251,23 @@ const Figure1 = () => (
 // איור 2: פירוק ג'לטין
 // =========================
 const Figure2 = () => (
-  <div className="bg-white p-5 rounded-2xl border-2 border-amber-100 mb-8 max-w-lg mx-auto shadow-sm">
-    <h3 className="text-center font-black text-amber-900 mb-5 text-base">
+  <div className="bg-white p-6 rounded-2xl mb-8 max-w-lg mx-auto flex flex-col items-center border border-stone-200 shadow-sm">
+    <h3 className="text-center font-bold text-stone-800 mb-6 text-base">
       איור 2: פירוק הג'לטין לפפטידים באמצעות אנזימים
     </h3>
-    <div className="flex flex-col md:flex-row items-center justify-center gap-5">
-      <div className="bg-yellow-100 border-2 border-yellow-400 text-yellow-900 font-bold px-5 py-3 rounded-xl text-center text-sm w-32">
-        ג'לטין<br/><span className="text-xs font-normal">(שרשרת ארוכה)</span>
+    <div className="flex flex-row items-center justify-center w-full max-w-sm">
+      <div className="bg-white border border-stone-800 text-stone-800 px-4 py-1.5 text-sm whitespace-nowrap">
+        החלבון ג'לטין
       </div>
-      <div className="flex flex-col items-center text-xs text-orange-600 font-bold gap-1">
-        <span>אנזים מפרק חלבון</span>
-        <span className="text-xl">→</span>
+      <div className="flex flex-col items-center justify-center flex-1 px-2 relative -top-3">
+        <span className="text-sm text-stone-800 mb-1 whitespace-nowrap">אנזים מפרק חלבון</span>
+        <div className="flex items-center w-full">
+           <div className="flex-1 h-[1px] bg-stone-800"></div>
+           <div className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[8px] border-l-stone-800 border-b-[4px] border-b-transparent"></div>
+        </div>
       </div>
-      <div className="bg-stone-50 border-2 border-stone-300 text-stone-800 font-bold px-5 py-3 rounded-xl text-center text-sm w-32">
-        פפטידים<br/><span className="text-xs font-normal">(שרשרות קצרות)</span>
+      <div className="bg-white border border-stone-800 text-stone-800 px-4 py-1.5 text-sm whitespace-nowrap">
+        פפטידים
       </div>
     </div>
   </div>
@@ -282,9 +285,9 @@ const InfoBox = ({ title, children }) => (
 // =========================
 const Tube = ({
   label, phase,
-  pour1Phase, pour1Color, pour1Vol = 30, pour1DropColor,
-  pour2Phase, pour2Color, pour2Vol = 30, pour2DropColor,
-  pour3Phase, pour3Color, pour3Vol = 0, pour3DropColor,
+  pour1Phase, pour1Color, pour1Vol = 30, pour1DropColor, pour1Drops = 3,
+  pour2Phase, pour2Color, pour2Vol = 30, pour2DropColor, pour2Drops = 3,
+  pour3Phase, pour3Color, pour3Vol = 0, pour3DropColor, pour3Drops = 3,
   mixPhase, tiltPhase, gelPhase = 5,
   gelHeight,
   contents,
@@ -322,18 +325,19 @@ const Tube = ({
 
   const [dropsVisible, setDropsVisible] = useState(false);
   const [dropColor, setDropColor] = useState(pour1Color);
+  const [dropCount, setDropCount] = useState(3);
 
   useEffect(() => {
-    if (isPouring1) { setDropColor(pour1DropColor || pour1Color); setDropsVisible(true); }
-    else if (isPouring2) { setDropColor(pour2DropColor || pour2Color); setDropsVisible(true); }
-    else if (isPouring3) { setDropColor(pour3DropColor || pour3Color); setDropsVisible(true); }
+    if (isPouring1) { setDropColor(pour1DropColor || pour1Color); setDropCount(pour1Drops); setDropsVisible(true); }
+    else if (isPouring2) { setDropColor(pour2DropColor || pour2Color); setDropCount(pour2Drops); setDropsVisible(true); }
+    else if (isPouring3) { setDropColor(pour3DropColor || pour3Color); setDropCount(pour3Drops); setDropsVisible(true); }
     else { setDropsVisible(false); }
 
     if (isPouring1 || isPouring2 || isPouring3) {
       const t = setTimeout(() => setDropsVisible(false), 1400); 
       return () => clearTimeout(t);
     }
-  }, [phase, isPouring1, isPouring2, isPouring3, pour1Color, pour2Color, pour3Color, pour1DropColor, pour2DropColor, pour3DropColor]);
+  }, [phase, isPouring1, isPouring2, isPouring3, pour1Color, pour2Color, pour3Color, pour1DropColor, pour2DropColor, pour3DropColor, pour1Drops, pour2Drops, pour3Drops]);
 
   return (
     <div className="flex flex-col items-center relative w-[56px] mb-6">
@@ -350,8 +354,8 @@ const Tube = ({
               <div className="pipette-tip">
                 <div className={cx('pipette-liquid', dropColor)} style={{ height: '55%' }} />
               </div>
-              {[0, 1, 2].map(i => (
-                <div key={i} className={cx('falling-drop', dropColor)} style={{ animationDelay: `${i * 0.22}s` }} />
+              {[...Array(dropCount)].map((_, i) => (
+                <div key={i} className={cx('falling-drop', dropColor)} style={{ animationDelay: `${i * 0.3}s`, animationIterationCount: 1, animationFillMode: 'forwards' }} />
               ))}
             </div>
           )}
@@ -462,7 +466,7 @@ const MCQ = ({ qNum, points, question, options, correctIndex, explanation, onSco
     <div className="question-card">
       <div className="flex flex-wrap items-start gap-3 mb-4">
         <span className="bg-amber-500 text-white px-3 py-1 rounded-xl text-sm font-black shadow-sm shrink-0">שאלה {qNum}</span>
-        <span className="flex-1 font-bold text-stone-800 text-sm md:text-base leading-relaxed whitespace-pre-line">{question}</span>
+        <div className="flex-1 font-bold text-stone-800 text-sm md:text-base leading-relaxed whitespace-pre-line">{question}</div>
         <span className="bg-orange-100 text-orange-900 px-3 py-1 rounded-full text-xs font-black shrink-0 self-start">{points} נק'</span>
       </div>
       <div className="flex flex-col gap-2.5 mb-4">
@@ -470,11 +474,24 @@ const MCQ = ({ qNum, points, question, options, correctIndex, explanation, onSco
           let cls = 'text-right p-3.5 rounded-xl border-2 text-sm leading-relaxed transition-all ';
           if (!submitted) { cls += selected === i ? 'bg-yellow-50 border-yellow-400 font-bold text-yellow-900 shadow-sm' : 'bg-stone-50 border-stone-200 hover:bg-yellow-50/50 cursor-pointer hover:border-yellow-300'; }
           else { if (i === correctIndex) cls += 'bg-lime-50 border-lime-500 font-bold text-lime-900'; else if (i === selected) cls += 'bg-rose-50 border-rose-400 font-bold text-rose-900'; else cls += 'bg-stone-50/30 border-stone-100 opacity-50 text-stone-400'; }
-          return ( <button key={i} className={cls} onClick={() => !submitted && setSelected(i)} disabled={submitted}> <span className="font-black text-stone-400 ml-2">{['א', 'ב', 'ג', 'ד'][i]}.</span> {opt} </button> );
+          return (
+            <button key={i} className={cls} onClick={() => !submitted && setSelected(i)} disabled={submitted}>
+              <span className="font-black text-stone-400 ml-2">{['א', 'ב', 'ג', 'ד'][i]}.</span> {opt}
+            </button>
+          );
         })}
       </div>
-      {!submitted && ( <button onClick={submit} disabled={selected === null} className="px-7 py-2.5 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 disabled:bg-stone-300 transition-colors shadow-sm text-sm">בדוק תשובה</button> )}
-      {submitted && ( <div className={cx('mt-4 p-4 rounded-2xl border-2', isCorrect ? 'bg-lime-50 border-lime-400' : 'bg-rose-50 border-rose-300')}> <div className={cx('font-black mb-2', isCorrect ? 'text-lime-800' : 'text-rose-800')}>{isCorrect ? '✅ תשובה נכונה! כל הכבוד.' : '❌ תשובה שגויה — הסבר:'}</div> <div className="text-stone-700 text-sm leading-relaxed font-medium whitespace-pre-line">{explanation}</div> </div> )}
+      {!submitted && (
+        <button onClick={submit} disabled={selected === null} className="px-7 py-2.5 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 disabled:bg-stone-300 transition-colors shadow-sm text-sm">
+          בדוק תשובה
+        </button>
+      )}
+      {submitted && (
+        <div className={cx('mt-4 p-4 rounded-2xl border-2', isCorrect ? 'bg-lime-50 border-lime-400' : 'bg-rose-50 border-rose-300')}>
+          <div className={cx('font-black mb-2', isCorrect ? 'text-lime-800' : 'text-rose-800')}>{isCorrect ? '✅ תשובה נכונה! כל הכבוד.' : '❌ תשובה שגויה — הסבר:'}</div>
+          <div className="text-stone-700 text-sm leading-relaxed font-medium whitespace-pre-line">{explanation}</div>
+        </div>
+      )}
     </div>
   );
 };
@@ -486,7 +503,11 @@ const MeasuringCylinder = ({ label, volume, isVisible }) => {
     <div className={cx('flex flex-col items-center transition-all duration-700', isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8')}>
       <div className="text-xs font-black text-amber-900 mb-2 bg-white px-2.5 py-1 rounded-full shadow-sm border border-stone-200">משורה {label}</div>
       <div className="relative w-11 h-36 border-x-[3px] border-b-[3px] border-stone-400 bg-white/80 flex flex-col justify-end overflow-hidden rounded-b-lg shadow-inner">
-        <div className="absolute inset-y-1 left-0 w-2 flex flex-col justify-between py-1 z-10">{[...Array(8)].map((_, i) => ( <div key={i} className="w-full border-t border-stone-300" /> ))}</div>
+        <div className="absolute inset-y-1 left-0 w-2 flex flex-col justify-between py-1 z-10">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="w-full border-t border-stone-300" />
+          ))}
+        </div>
         <div className="w-full bg-amber-300 border-t-4 border-amber-400 transition-all duration-[1800ms] ease-out" style={{ height: isVisible ? `${heightPct}%` : '0%' }} />
       </div>
       <div className="mt-2.5 font-black text-amber-900 bg-amber-100 px-3 py-1.5 rounded-full text-xs border border-amber-300 shadow-sm">{volume} מ"ל</div>
@@ -598,15 +619,15 @@ const PartA = ({ onScore }) => {
         question="מהי הכותרת המתאימה לטבלה 1?"
         options={[
           "תיאור השפעת נפח המים, תמיסת הטריפסין ומיצוי האננס על קצב הקרישה של חלבון הג'לטין.",
-          "מערך הניסוי ותוצאות בדיקת קרישת הג'לטין בנוכחות אנזימים (טריפסין ומיצוי אננס) לעומת מים.",
+          "השפעת נוכחות אנזימים (טריפסין ומיצוי אננס) על קרישת הג'לטין.",
           "השפעת טמפרטורת האמבט החם (37 מעלות) וזמן השהייה בו על צבע תמיסת הג'לטין במבחנות השונות.",
-          "מעקב אחר שינוי נפח תמיסת הג'לטין במבחנות כתוצאה מהוספה של מיצוי אננס לאורך זמן ממושך.",
+          "מעקב אחר שינוי נפח תמיסת הג'לטין במבחנות כתוצאה מהוספה של מיצוי אננס לאורך זמן ממושך."
         ]}
         correctIndex={1}
-        explanation={`כותרת טבלה תקינה בביולוגיה צריכה לתאר את תוכן הטבלה (מערך הניסוי והתוצאות) ולכלול את המשתנה הבלתי תלוי (החומרים שהוספו - טריפסין/אננס/מים) והמשתנה התלוי (התוצאה הנמדדת - קרישת הג'לטין).`}
+        explanation={`כותרת טבלה תקינה בביולוגיה צריכה כלול את המשתנה הבלתי תלוי (החומרים שהוספו - טריפסין/אננס/מים) והמשתנה התלוי (התוצאה הנמדדת - קרישת הג'לטין).`}
       />
       <MCQ qNum="61ב" points={5} onScore={onScore}
-        question="על סמך תוצאות שלב 6, מה היה מצב הקרישה בכל אחת מהמבחנות A, B, C?"
+        question="על סמך תוצאות שלב 6, איזה מהמשפטים הבאים מתאר נכונה את מצב הקרישה בכל אחת מהמבחנות A, B, C?"
         options={["A - לא נקרש, B - לא נקרש, C - נקרש.", "A - נקרש, B - לא נקרש, C - נקרש.", "A - נקרש, B - נקרש, C - לא נקרש.", "A - לא נקרש, B - נקרש, C - נקרש."]}
         correctIndex={0}
         explanation={`מבחנה A (טריפסין) ומבחנה B (ברומלין מאננס) מכילות אנזימים שמפרקים את הג'לטין - לכן הוא לא נקרש. מבחנה C (מים) משמשת כבקרה ובה החלבון נשאר שלם ונקרש.`}
@@ -618,7 +639,7 @@ const PartA = ({ onScore }) => {
         explanation={`אמבט 1 (37-40 מעלות) מספק טמפרטורה מתאימה לפירוק אנזימתי של החלבון / ג'לטין. בטמפרטורה זו האנזימים פועלים בקצב טוב כדי להספיק ולפרק את מולקולות החלבון לפני שמקררים.`}
       />
       <MCQ qNum="62ב" points={6} onScore={onScore}
-        question="כיצד תסביר את ההבדל בתוצאות הקרישה בין מבחנה C (מים) לבין מבחנות A (טריפסין) ו-B (מיצוי אננס)?"
+        question="מהו ההסבר להבדל בתוצאות הקרישה בין מבחנה C (מים) לבין מבחנות A (טריפסין) ו-B (מיצוי אננס)?"
         options={["תוספת המים במבחנה C ממיסה לחלוטין את הג'לטין ומונעת יצירת רשת, בעוד שהאנזימים שבמבחנות A ו-B מעודדים ומזרזים את תהליך יצירת קשרי החלבון.", "במבחנות A ו-B מולקולות האנזים ספחו אליהן את כל תמיסת המים ביעילות, וכך למעשה לא נותרה תמיסת ג'לטין חופשית שתוכל לעבור תהליך קרישה לאחר שלב החימום.", "הטריפסין ומיצוי האננס משנים לחלוטין את התכונות הפיזיקליות של התמיסה ומורידים את טמפרטורת הקרישה הטבעית שלה אל הרבה מתחת לאפס מעלות ולכן היא נוזלית.", "למבחנות A ו-B הוספו אנזימים (טריפסין ומיצוי אננס) המזרזים את פירוק החלבון ג'לטין לשרשראות קצרות (פפטידים) שאינן נקרשות. במבחנה C אין אנזים ולכן הג'לטין נקרש."]}
         correctIndex={3}
         explanation={`למבחנה A הוסף האנזים טריפסין המזרז פירוק ג'לטין ולכן אין קרישה. למבחנה B הוספנו מיצוי אננס המזרז פירוק חלבון, ותוצרי הפירוק (פפטידים) לא נקרשים. במבחנה C לא היה אנזים ולכן הג'לטין נקרש.`}
@@ -646,6 +667,40 @@ const PartB = ({ onScore }) => {
 
   const gelHeights = [60, 40, 20, 0, 60];
 
+  const q63Question = (
+    <div className="flex flex-col gap-3">
+      <div>ריכוז התחלתי של תמיסת נחושת גופרתית הוא 2%. החישוב של תמיסת נחושת גופרתית שהתקבל מפורט בטבלה 2.</div>
+      <div className="overflow-x-auto w-full my-2">
+        <h4 className="font-black text-amber-900 mb-2 text-base text-right">טבלה 2</h4>
+        <table className="w-full text-center border-collapse bg-white rounded-xl overflow-hidden text-xs md:text-sm border border-amber-200 shadow-sm">
+          <thead className="bg-amber-100 text-amber-900 font-bold">
+            <tr>
+              <th className="p-2 border border-amber-200">המבחנה</th>
+              <th className="p-2 border border-amber-200">נפח תמיסת נחושת גופרתית</th>
+              <th className="p-2 border border-amber-200">נפח המים (מ"ל)</th>
+              <th className="p-2 border border-amber-200">ריכוז תמיסת נחושת גופרתית</th>
+            </tr>
+          </thead>
+          <tbody className="text-stone-700 font-medium">
+            <tr className="border-b border-amber-50">
+              <td className="p-2 border border-amber-100 font-bold bg-stone-50">a</td>
+              <td className="p-2 border border-amber-100">1 מ"ל תמיסת נחושת גופרתית 2%</td>
+              <td className="p-2 border border-amber-100">9</td>
+              <td className="p-2 border border-amber-100 font-bold text-amber-600">?</td>
+            </tr>
+            <tr>
+              <td className="p-2 border border-amber-100 font-bold bg-stone-50">b</td>
+              <td className="p-2 border border-amber-100 font-bold">1 מ"ל תמיסת נחושת גופרתית ממבחנה a</td>
+              <td className="p-2 border border-amber-100">9</td>
+              <td className="p-2 border border-amber-100 font-bold text-amber-600">?</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div className="font-bold">מהו הריכוז של תמיסת נחושת גופרתית שהתקבל במבחנות a ו- b?</div>
+    </div>
+  );
+
   return (
     <section className="mb-16">
       <h2 className="text-xl md:text-2xl font-black mb-6 text-amber-900 border-b-4 border-amber-300 pb-2 inline-block">חלק ב' — עיכוב פעילות האנזים ממיצוי אננס</h2>
@@ -653,55 +708,54 @@ const PartB = ({ onScore }) => {
         <p>בחלק זה נבדוק כיצד ריכוזים שונים של <strong>נחושת גופרתית</strong> (מעכב) משפיעים על פעילות האנזים ממיצוי האננס. ככל שהמעכב יעיל יותר — כך יישאר יותר ג'לטין שלם שייקרש, ופחות פפטידים יווצרו.</p>
       </div>
       <InfoBox title="🧪 לידיעתך 2:">נחושת גופרתית מעכבת את פעילות האנזים המפרק חלבון. <strong>המדד לפעילות האנזים: נפח הנוזל (פפטידים) שאינו נקרש ונאסף מהמבחנה.</strong></InfoBox>
+      
       <MCQ qNum="63" points={6} onScore={onScore}
-        question={`הכנת מיהולי המעכב (סעיפים יז–יח בהוראות הניסוי):
-1 מ"ל נחושת גופרתית 2% + 9 מ"ל מים → מבחנה a.
-לאחר מכן: 1 מ"ל ממבחנה a + 9 מ"ל מים → מבחנה b.
-חשב את הריכוז של תמיסת נחושת גופרתית שהתקבל במבחנות a, b?`}
+        question={q63Question}
         options={["מבחנה a: 0.5%, מבחנה b: 0.05% מתוך הנפח הכולל במבחנות האחרות.", "מבחנה a: 0.2%, מבחנה b: 0.02% לאחר מיהול עשרוני חוזר בכל שלב.", "מבחנה a: 1.0%, מבחנה b: 0.10% מכיוון שהוספנו מ\"ל אחד בכל פעם.", "מבחנה a: 0.02%, מבחנה b: 0.2% ביחס הפוך לכמות המים שהוספנו."]}
         correctIndex={1}
-        explanation={`בכל שלב מבצעים מיהול עשרוני (פי 10). 
-מבחנה a: 1 מ"ל (מתוך 10 מ"ל סה"כ) שווה למיהול 1:10 מהתמיסה המקורית (2%) ולכן 2% / 10 = 0.2%.
-מבחנה b: 1 מ"ל ממבחנה a (מתוך 10 מ"ל סה"כ) שווה למיהול 1:10 מריכוז a (0.2%) ולכן 0.2% / 10 = 0.02%.`}
+        explanation={`בכל שלב מבצעים מיהול עשרוני (פי 10). \nמבחנה a: 1 מ"ל (מתוך 10 מ"ל סה"כ) שווה למיהול 1:10 מהתמיסה המקורית (2%) ולכן 2% / 10 = 0.2%.\nמבחנה b: 1 מ"ל ממבחנה a (מתוך 10 מ"ל סה"כ) שווה למיהול 1:10 מריכוז a (0.2%) ולכן 0.2% / 10 = 0.02%.`}
       />
+      
       <div className="bg-white border-2 border-amber-200 rounded-3xl shadow-md p-5 md:p-8 mb-8 mt-8">
         <h3 className="font-black text-amber-900 text-lg mb-5 text-center">מעבדת הניסוי — חלק ב'</h3>
         <PhaseText text={phaseLabels[phase]} />
         <BathContainer phase={phase} bathPhase1={5} bathPhase2={6} minWidth="640px">
           <Tube label="1" phase={phase} gelPhase={6}
             pour1Phase={1} pour1Color="bg-yellow-400" pour1Vol={20}
-            pour2Phase={2} pour2Color="bg-yellow-400" pour2Vol={10} pour2DropColor="bg-cyan-300"
-            pour3Phase={3} pour3Color="bg-yellow-400" pour3Vol={30} pour3DropColor="bg-cyan-300"
+            pour2Phase={2} pour2Color="bg-yellow-400" pour2Vol={10} pour2DropColor="bg-blue-600" pour2Drops={2}
+            pour3Phase={3} pour3Color="bg-yellow-400" pour3Vol={30} pour3DropColor="bg-blue-200"
             mixPhase={4} tiltPhase={7} gelHeight={gelHeights[0]} contents={['1 מ"ל אננס', 'טיפות מעכב 2%', '2 מ"ל ג\'לטין']}
           />
           <Tube label="2" phase={phase} gelPhase={6}
             pour1Phase={1} pour1Color="bg-yellow-400" pour1Vol={20}
-            pour2Phase={2} pour2Color="bg-yellow-400" pour2Vol={10} pour2DropColor="bg-cyan-300"
-            pour3Phase={3} pour3Color="bg-yellow-400" pour3Vol={30} pour3DropColor="bg-cyan-300"
+            pour2Phase={2} pour2Color="bg-yellow-400" pour2Vol={10} pour2DropColor="bg-blue-600" pour2Drops={2}
+            pour3Phase={3} pour3Color="bg-yellow-400" pour3Vol={30} pour3DropColor="bg-blue-200"
             mixPhase={4} tiltPhase={7} gelHeight={gelHeights[1]} contents={['1 מ"ל אננס', 'טיפות מעכב 0.2%', '2 מ"ל ג\'לטין']}
           />
           <Tube label="3" phase={phase} gelPhase={6}
             pour1Phase={1} pour1Color="bg-yellow-400" pour1Vol={20}
-            pour2Phase={2} pour2Color="bg-yellow-400" pour2Vol={10} pour2DropColor="bg-cyan-300"
-            pour3Phase={3} pour3Color="bg-yellow-400" pour3Vol={30} pour3DropColor="bg-cyan-300"
+            pour2Phase={2} pour2Color="bg-yellow-400" pour2Vol={10} pour2DropColor="bg-blue-600" pour2Drops={2}
+            pour3Phase={3} pour3Color="bg-yellow-400" pour3Vol={30} pour3DropColor="bg-blue-200"
             mixPhase={4} tiltPhase={7} gelHeight={gelHeights[2]} contents={['1 מ"ל אננס', 'טיפות מעכב 0.02%', '2 מ"ל ג\'לטין']}
           />
           <Tube label="4" phase={phase} gelPhase={6}
             pour1Phase={1} pour1Color="bg-yellow-400" pour1Vol={20}
-            pour2Phase={2} pour2Color="bg-yellow-400" pour2Vol={10} pour2DropColor="bg-cyan-300"
-            pour3Phase={3} pour3Color="bg-yellow-400" pour3Vol={30} pour3DropColor="bg-cyan-300"
+            pour2Phase={2} pour2Color="bg-yellow-400" pour2Vol={10} pour2DropColor="bg-blue-200" pour2Drops={2}
+            pour3Phase={3} pour3Color="bg-yellow-400" pour3Vol={30} pour3DropColor="bg-blue-200"
             mixPhase={4} tiltPhase={7} gelHeight={gelHeights[3]} contents={['1 מ"ל אננס', 'טיפות מים', '2 מ"ל ג\'לטין']}
           />
           <Tube label="5" phase={phase} gelPhase={6}
             pour1Phase={1} pour1Color="bg-blue-200" pour1Vol={20}
-            pour2Phase={2} pour2Color="bg-blue-200" pour2Vol={10} pour2DropColor="bg-cyan-300"
-            pour3Phase={3} pour3Color="bg-blue-200" pour3Vol={30} pour3DropColor="bg-cyan-300"
+            pour2Phase={2} pour2Color="bg-blue-200" pour2Vol={10} pour2DropColor="bg-blue-200" pour2Drops={2}
+            pour3Phase={3} pour3Color="bg-blue-200" pour3Vol={30} pour3DropColor="bg-blue-200"
             mixPhase={4} tiltPhase={7} gelHeight={gelHeights[4]} contents={['1 מ"ל מים', 'טיפות מים', '2 מ"ל ג\'לטין']}
           />
         </BathContainer>
         {phase >= 8 && (
           <div className="rounded-3xl border-4 border-stone-200 bg-stone-50 shadow-inner flex flex-wrap justify-center items-end py-10 gap-8 mb-6 mt-8">
-            {[{ l: '1', v: 0.0 }, { l: '2', v: 1.0 }, { l: '3', v: 2.0 }, { l: '4', v: 3.0 }, { l: '5', v: 0.0 }].map(m => ( <MeasuringCylinder key={m.l} label={m.l} volume={m.v} isVisible={phase >= 8} /> ))}
+            {[{ l: '1', v: 0.0 }, { l: '2', v: 1.0 }, { l: '3', v: 2.0 }, { l: '4', v: 3.0 }, { l: '5', v: 0.0 }].map(m => (
+              <MeasuringCylinder key={m.l} label={m.l} volume={m.v} isVisible={phase >= 8} />
+            ))}
           </div>
         )}
         <div className="flex flex-wrap justify-center gap-2.5 mt-8">
@@ -766,13 +820,48 @@ const PartB = ({ onScore }) => {
           </table>
         </div>
       </div>
-      <MCQ qNum="64ב" points={5} onScore={onScore} question="כתוב כותרת מתאימה לטבלה 3 (תוצאות ניסוי העיכוב)." options={["השפעת הנפח ההתחלתי של תמיסת הג'לטין על מהירות הקרישה של התמיסות, כאשר הן מועברות לטמפרטורות שונות.", "בחינה השוואתית מקיפה בין רמת הפעילות של אנזים הטריפסין לבין האנזים ברומלין, בסביבה בעלת ריכוזי מלחים.", "השפעת ריכוז הנחושת הגופרתית על עיכוב קרישת הג'לטין (או פעילות האנזים מפרק החלבון) מפרי האננס.", "השפעת הכמות המוספת של מיצוי האננס על עצמת שינוי הצבע בתמיסות נחושת גופרתית שונות לאחר שלב הקירור."]} correctIndex={2} explanation={`הכותרת צריכה לכלול התייחסות למשתנה הבלתי תלוי (השפעת ריכוז הנחושת הגופרתית), למשתנה התלוי (עיכוב קרישת הג'לטין / פעילות האנזים) ולאורגניזם (אננס).`} />
-      <MCQ qNum="65" points={5} onScore={onScore} question="מהו המשתנה הבלתי תלוי בניסוי שערכת (ניסוי העיכוב בחלק ב')?" options={["הנפח של תמיסת הג'לטין שהוסף לכל אחת מהמבחנות בניסוי.", "ריכוז תמיסת נחושת גופרתית (המעכב) המשמש כמשתנה מסביר בניסוי זה.", "הטמפרטורה הקבועה שנקבעה מראש באמבט המים הקרים.", "הנפח הסופי של תמיסת הפפטידים שנאסף לתוך המשורות."]} correctIndex={1} explanation={`המשתנה הבלתי תלוי הוא הגורם שהחוקר משנה במכוון. בניסוי זה שינינו את ריכוז תמיסת נחושת גופרתית (המעכב) כדי לבדוק את השפעתו.`} />
-      <MCQ qNum="66א" points={5} onScore={onScore} question="מהו המשתנה התלוי בניסוי שערכת?" options={["מידת הקרישה של תמיסת הג'לטין.", "נפח תמיסת הג'לטין.", "מידת פעילות האנזים מפרק החלבון.", "ריכוז מיצוי האננס."]} correctIndex={2} explanation={`התשובה הנכונה לפי המבחן היא III: מידת פעילות האנזים מפרק החלבון. זהו הגורם המושפע מריכוז המעכב.`} />
-      <MCQ qNum="66ב" points={6} onScore={onScore} question="מהי דרך המדידה של המשתנה התלוי, והסבר כיצד היא מתאימה למדידתו." options={["מדידה של שינויי הטמפרטורה במבחנה. ככל שהאנזים פועל מהר יותר, הוא מייצר אנרגיית חום רבה יותר שמשנה את צבע הג'לטין לחלוטין ולכן מתאימה.", "מדידת כמות המשקע שנוצר במבחנה. חלבון ג'לטין אשר מתפרק הופך למשקע מוצק בתחתית המבחנה, ולכן שקילת המשקע מהווה מדד אידיאלי לקצב הפעילות.", "מדידת נפח תמיסת הפפטידים (תוצרי פירוק הג'לטין שלא נקרשו). ככל שיהיה יותר עיכוב של פעילות האנזים, פחות ג'לטין יתפרק ומידת הקרישה תגדל.", "מדידת משך הזמן הדרוש להתמוססות המעכב במים החמים. מעכב יעיל יותר מתמוסס לאט יותר, מה שמעיד על כך שהוא נקשר אל האנזים ומונע ממנו לפרק את החלבון."]} correctIndex={2} explanation={`דרך המדידה: נפח תמיסת הפפטידים / נפח תוצרי פירוק הג'לטין שלא נקרשו. הסבר: ככל שיהיה יותר עיכוב של פעילות האנזים, פחות ג'לטין יתפרק לפפטידים, יווצרו פחות פפטידים ומידת הקרישה תגדל.`} />
-      <MCQ qNum="67א" points={6} onScore={onScore} question="בניסוי זה נשמר ריכוז הג'לטין קבוע בכל המבחנות 1-4. מדוע חשוב לשמור דווקא על גורם זה קבוע במערך הניסוי?" options={["שמירה על ריכוז קבוע נועדה להבטיח שצבע התמיסות יישאר אחיד לחלוטין, על מנת שלא לבלבל את הצופה בעת רישום התוצאות.", "ריכוז קבוע מבטיח שהג'לטין, בהיותו חלבון, לא ינטרל באופן מוחלט את ההשפעה המעכבת של יוני הנחושת הגופרתית בתמיסה.", "ריכוז משתנה או גבוה מדי של ג'לטין עלול לגרום להתפשטות החומר וליצור לחץ רב שיוביל לשבירת המבחנות באמבט הקירור.", "ריכוז הג'לטין משפיע על קצב פעילות אנזים ופירוק החלבון. בניסוי זה אנו בודקים את השפעת ריכוז המעכב, ולכן עלינו לבודד משתנים."]} correctIndex={3} explanation={`ריכוז הג'לטין משפיע על קצב פעילות האנזים (מספר המפגשים בין אנזים למצע). מכיוון שבניסוי זה אנו בודקים את השפעת המעכב, עלינו לשמור על שאר הגורמים קבועים כדי לבודד את המשתנה הבלתי תלוי.`} />
-      <MCQ qNum="67ב" points={5} onScore={onScore} question="ציין גורם אחר שנשמר קבוע במערך הניסוי." options={["הריכוז הסופי של תמיסת הנחושת הגופרתית בכל אחת ממערכות הניסוי.", "מידת הקרישה המדויקת של תמיסת הג'לטין בסיומו המוחלט של הניסוי.", "הנפח המצטבר של תמיסת הפפטידים שנאסף לתוך המשורות בשלב הסופי.", "טמפרטורת האמבטים, נפח מיצוי האננס (1 מ\"ל) ודרגת ה-pH של התמיסה."]} correctIndex={3} explanation={`גורמים נוספים שנשמרו קבועים: הטמפרטורה באמבט 1 ובאמבט 2, נפח מיצוי האננס (1 מ\"ל), סוג האננס, רמת ה-pH, והנפח הכולל של התמיסה.`} />
-      <MCQ qNum="68" points={6} onScore={onScore} question="מהי המסקנה שאפשר להסיק מתוצאות הניסוי שהתקבלו במבחנות 1-4 לגבי השפעת הנחושת הגופרתית?" options={["לנוכחות של נחושת גופרתית אין כל השפעה מהותית על פעילות האנזים, וההבדלים הנובעים בתוצאות מקריים בלבד.", "ככל שריכוז תמיסת הנחושת גופרתית גבוה יותר בטווח שנבדק, כך מידת העיכוב של האנזימים עולה ופירוק החלבון יורד.", "נחושת גופרתית פועלת כזרז ומאיצה את פעילות האנזים: ככל שריכוז הנחושת עולה, כך קצב פירוק החלבון עולה בהתאמה.", "האנזים שבמיצוי פעיל באופן בלעדי רק בנוכחות של נחושת גופרתית; ללא נוכחות חומר זה הוא כלל אינו מסוגל לפרק ג'לטין."]} correctIndex={1} explanation={`המסקנה היא שככל שריכוז תמיסת הנחושת הגופרתית גבוה יותר (בטווח שנבדק), כך מידת העיכוב של האנזימים עולה, ופירוק הג'לטין לפפטידים יורד.`} />
+      <MCQ qNum="64ב" points={5} onScore={onScore}
+        question="מהי כותרת מתאימה לטבלה 3 (תוצאות ניסוי העיכוב)?"
+        options={["השפעת הנפח ההתחלתי של תמיסת הג'לטין על מהירות הקרישה של התמיסות, כאשר הן מועברות לטמפרטורות שונות.", "בחינה השוואתית מקיפה בין רמת הפעילות של אנזים הטריפסין לבין האנזים ברומלין, בסביבה בעלת ריכוזי מלחים.", "השפעת ריכוז הנחושת הגופרתית על עיכוב קרישת הג'לטין (או פעילות האנזים מפרק החלבון) מפרי האננס.", "השפעת הכמות המוספת של מיצוי האננס על עצמת שינוי הצבע בתמיסות נחושת גופרתית שונות לאחר שלב הקירור."]}
+        correctIndex={2}
+        explanation={`הכותרת צריכה לכלול התייחסות למשתנה הבלתי תלוי (השפעת ריכוז הנחושת הגופרתית), למשתנה התלוי (עיכוב קרישת הג'לטין / פעילות האנזים) ולאורגניזם (אננס).`}
+      />
+      <MCQ qNum="65" points={5} onScore={onScore}
+        question="מהו המשתנה הבלתי תלוי בניסוי שערכת (ניסוי העיכוב בחלק ב')?"
+        options={["הנפח ההתחלתי של תמיסת הג'לטין שהוסף לכל אחת מהמבחנות בניסוי המעבדה.", "ריכוז תמיסת נחושת גופרתית (המעכב).", "הטמפרטורה הקבועה שנקבעה מראש באמבט המים הקרים עבור כל הטיפולים.", "הנפח הסופי של תמיסת הפפטידים שנאסף לתוך המשורות בתום תהליך הקירור."]}
+        correctIndex={1}
+        explanation={`המשתנה הבלתי תלוי הוא הגורם שהחוקר משנה במכוון. בניסוי זה שינינו את ריכוז תמיסת נחושת גופרתית (המעכב) כדי לבדוק את השפעתו.`}
+      />
+      <MCQ qNum="66א" points={5} onScore={onScore}
+        question="מהו המשתנה התלוי בניסוי שערכת?"
+        options={["מידת הקרישה של תמיסת הג'לטין.", "נפח תמיסת הג'לטין.", "מידת פעילות האנזים מפרק החלבון.", "ריכוז מיצוי האננס."]}
+        correctIndex={2}
+        explanation={`התשובה הנכונה לפי המבחן היא III: מידת פעילות האנזים מפרק החלבון. זהו הגורם המושפע מריכוז המעכב.`}
+      />
+      <MCQ qNum="66ב" points={6} onScore={onScore}
+        question="מהי דרך המדידה של המשתנה התלוי, ומהו ההסבר לכך שהיא מתאימה למדידתו?"
+        options={["מדידה של שינויי הטמפרטורה במבחנה. ככל שהאנזים פועל מהר יותר, הוא מייצר אנרגיית חום רבה יותר שמשנה את צבע הג'לטין לחלוטין ולכן מתאימה.", "מדידת כמות המשקע שנוצר במבחנה. חלבון ג'לטין אשר מתפרק הופך למשקע מוצק בתחתית המבחנה, ולכן שקילת המשקע מהווה מדד אידיאלי לקצב הפעילות.", "מדידת נפח תמיסת הפפטידים (תוצרי פירוק הג'לטין שלא נקרשו). ככל שיהיה יותר עיכוב של פעילות האנזים, פחות ג'לטין יתפרק ומידת הקרישה תגדל.", "מדידת משך הזמן הדרוש להתמוססות המעכב במים החמים. מעכב יעיל יותר מתמוסס לאט יותר, מה שמעיד על כך שהוא נקשר אל האנזים ומונע ממנו לפרק את החלבון."]}
+        correctIndex={2}
+        explanation={`דרך המדידה: נפח תמיסת הפפטידים / נפח תוצרי פירוק הג'לטין שלא נקרשו. הסבר: ככל שיהיה יותר עיכוב של פעילות האנזים, פחות ג'לטין יתפרק לפפטידים, יווצרו פחות פפטידים ומידת הקרישה תגדל.`}
+      />
+      <MCQ qNum="67א" points={6} onScore={onScore}
+        question="בניסוי זה נשמר ריכוז הג'לטין קבוע בכל המבחנות 1-4. מדוע חשוב לשמור דווקא על גורם זה קבוע במערך הניסוי?"
+        options={["שמירה על ריכוז קבוע נועדה להבטיח שצבע התמיסות יישאר אחיד לחלוטין, על מנת שלא לבלבל את הצופה בעת רישום התוצאות.", "ריכוז קבוע מבטיח שהג'לטין, בהיותו חלבון, לא ינטרל באופן מוחלט את ההשפעה המעכבת של יוני הנחושת הגופרתית בתמיסה.", "ריכוז משתנה או גבוה מדי של ג'לטין עלול לגרום להתפשטות החומר וליצור לחץ רב שיוביל לשבירת המבחנות באמבט הקירור.", "ריכוז הג'לטין משפיע על קצב פעילות אנזים ופירוק החלבון. בניסוי זה אנו בודקים את השפעת ריכוז המעכב, ולכן עלינו לבודד משתנים."]}
+        correctIndex={3}
+        explanation={`ריכוז הג'לטין משפיע על קצב פעילות האנזים (מספר המפגשים בין אנזים למצע). מכיוון שבניסוי זה אנו בודקים את השפעת המעכב, עלינו לשמור על שאר הגורמים קבועים כדי לבודד את המשתנה הבלתי תלוי.`}
+      />
+      <MCQ qNum="67ב" points={5} onScore={onScore}
+        question="איזה מהגורמים הבאים הוא גורם נוסף שנשמר קבוע במערך הניסוי?"
+        options={["הריכוז הסופי של תמיסת הנחושת הגופרתית בכל אחת ממערכות הניסוי.", "מידת הקרישה המדויקת של תמיסת הג'לטין בסיומו המוחלט של הניסוי.", "הנפח המצטבר של תמיסת הפפטידים שנאסף לתוך המשורות בשלב הסופי.", "טמפרטורת האמבטים בכל הטיפולים."]}
+        correctIndex={3}
+        explanation={`גורמים נוספים שנשמרו קבועים: הטמפרטורה באמבט 1 ובאמבט 2, נפח מיצוי האננס (1 מ"ל), סוג האננס, רמת ה-pH, והנפח הכולל של התמיסה.`}
+      />
+      <MCQ qNum="68" points={6} onScore={onScore}
+        question="מהי המסקנה שאפשר להסיק מתוצאות הניסוי שהתקבלו במבחנות 1-4 לגבי השפעת הנחושת הגופרתית?"
+        options={["לנוכחות של נחושת גופרתית אין כל השפעה מהותית על פעילות האנזים, וההבדלים הנובעים בתוצאות מקריים בלבד.", "ככל שריכוז תמיסת הנחושת גופרתית גבוה יותר בטווח שנבדק, כך מידת העיכוב של האנזימים עולה ופירוק החלבון יורד.", "נחושת גופרתית פועלת כזרז ומאיצה את פעילות האנזים: ככל שריכוז הנחושת עולה, כך קצב פירוק החלבון עולה בהתאמה.", "האנזים שבמיצוי פעיל באופן בלעדי רק בנוכחות של נחושת גופרתית; ללא נוכחות חומר זה הוא כלל אינו מסוגל לפרק ג'לטין."]}
+        correctIndex={1}
+        explanation={`המסקנה היא שככל שריכוז תמיסת הנחושת הגופרתית גבוה יותר (בטווח שנבדק), כך מידת העיכוב של האנזימים עולה, ופירוק הג'לטין לפפטידים יורד.`}
+      />
     </section>
   );
 };
@@ -814,16 +903,46 @@ const PartC = ({ onScore }) => {
           </div>
         </div>
       </div>
-      <MCQ qNum="69א" points={5} onScore={onScore} question="אילו משתנים יופיעו על צירי הגרף שיציג את הנתונים מטבלה 4?" options={["ציר ה-X: שיעור תמותת החרקים באחוזים (משתנה תלוי); ציר ה-Y: הזמן שחלף בימים.", "ציר ה-X: זן הפטרייה הספציפי (משתנה בלתי תלוי); ציר ה-Y: שיעור תמותת החרקים.", "ציר ה-X: הזמן (בימים) מהחשיפה (משתנה בלתי תלוי); ציר ה-Y: שיעור תמותת החרקים באחוזים (משתנה תלוי).", "ציר ה-X: טמפרטורת הסביבה; ציר ה-Y: הזמן שעבר מתחילת הניסוי."]} correctIndex={2} explanation={`המשתנה הבלתי תלוי הוא הזמן שחלף מהחשיפה (ציר X), והמשתנה התלוי הוא התוצאה הנמדדת - שיעור תמותת החרקים (ציר Y).`} />
-      <MCQ qNum="69ב" points={5} onScore={onScore} question="איזה סוג של הצגה גרפית הוא המתאים ביותר לתיאור התוצאות בטבלה 4, ומדוע?" options={["דיאגרמת עמודות נפרדות, משום שהזמן נמדד בימים מוגדרים בלבד.", "דיאגרמת עוגה, משום שסוג זה של גרף נועד להציג את החלק היחסי של התמותה.", "גרף פיזור (נקודות ללא קו מחבר), כיוון שאין כל קשר ישיר בין הימים החולפים לתמותה.", "גרף קו (רציף) / עקום, משום שהמשתנה הבלתי תלוי (הזמן בימים) הוא רציף וכמותי."]} correctIndex={3} explanation={`הזמן הוא משתנה כמותי רציף, לכן הצגה בעזרת גרף רציף היא המתאימה ביותר כדי לראות מגמות ושינויים לאורך רצף הזמן.`} />
-      <MCQ qNum="70א" points={6} onScore={onScore} question="תאר את התוצאות המוצגות בטבלה לגבי שיעור תמותת החרקים בשני הזנים." options={["זן א' גורם לתמותה גבוהה משמעותית של חרקים מאשר זן ב' לכל אורך הניסוי.", "שיעור תמותה בשני הזנים נותר אפסי בשבועיים הראשונים ורק אז עולה.", "לאחר החשיפה לזני הפטריות, שיעור תמותה עלה במשך הזמן בשניהם. עם זאת, קצב התמותה בחשיפה לזן ב' היה תמיד גבוה יותר.", "שיעור התמותה הולך ויורד באופן הדרגתי עם הזמן עקב פיתוח עמידות."]} correctIndex={2} explanation={`הנתונים בטבלה מראים עלייה בתמותה לאורך זמן בשני הזנים, אך ערכי התמותה וקצב העלייה של זן ב' גבוהים יותר בכל נקודת זמן שנמדדה.`} />
-      <MCQ qNum="70ב" points={6} onScore={onScore} question="בטיפול בקרה (שלא הוצג בטבלה) בדקו חרקים שלא נחשפו לפטרייה כלל. מהי חשיבות טיפול זה?" options={["לבדוק באיזו מהירות מתרבים החרקים באופן טבעי ללא איום.", "טיפול הבקרה מאפשר לדעת מהו אחוז התמותה הטבעי ולוודא שהחשיפה לפטרייה היא זו שגרמה לעלייה בתמותה.", "לבחון האם זני הפטרייה מסוגלים להתפתח ולשרוד ללא חרקים.", "להבטיח שמספר החרקים הכולל בניסוי יהיה שווה בשתי הקבוצות."]} correctIndex={1} explanation={`חשיבות הבקרה היא לשמש בסיס להשוואה. כך ניתן לוודא שהתמותה נגרמה מהטיפול (הפטרייה) ולא מגורמים חיצוניים אחרים או מוות טבעי.`} />
+      <MCQ qNum="69א" points={5} onScore={onScore}
+        question="אילו משתנים יופיעו על צירי הגרף שיציג את הנתונים מטבלה 4?"
+        options={["ציר ה-X: שיעור תמותת החרקים באחוזים (משתנה תלוי); ציר ה-Y: הזמן שחלף בימים (משתנה בלתי תלוי).", "ציר ה-X: זן הפטרייה הספציפי (משתנה בלתי תלוי); ציר ה-Y: שיעור תמותת החרקים.", "ציר ה-X: הזמן (בימים) מהחשיפה (משתנה בלתי תלוי); ציר ה-Y: שיעור תמותת החרקים באחוזים (משתנה תלוי).", "ציר ה-X: טמפרטורת הסביבה; ציר ה-Y: הזמן שעבר מתחילת הניסוי."]}
+        correctIndex={2}
+        explanation={`המשתנה הבלתי תלוי הוא הזמן שחלף מהחשיפה (ציר X), והמשתנה התלוי הוא התוצאה הנמדדת - שיעור תמותת החרקים (ציר Y).`}
+      />
+      <MCQ qNum="69ב" points={5} onScore={onScore}
+        question="איזה סוג של הצגה גרפית הוא המתאים ביותר לתיאור התוצאות בטבלה 4, ומדוע?"
+        options={["דיאגרמת עמודות נפרדות, משום שהזמן נמדד בימים מוגדרים בלבד.", "דיאגרמת עוגה, משום שסוג זה של גרף נועד להציג את החלק היחסי של התמותה.", "גרף פיזור (נקודות ללא קו מחבר), כיוון שאין כל קשר ישיר בין הימים החולפים לתמותה.", "גרף קו (רציף) / עקום, משום שהמשתנה הבלתי תלוי (הזמן בימים) הוא רציף וכמותי."]}
+        correctIndex={3}
+        explanation={`הזמן הוא משתנה כמותי רציף, לכן הצגה בעזרת גרף רציף היא המתאימה ביותר כדי לראות מגמות ושינויים לאורך רצף הזמן.`}
+      />
+      <MCQ qNum="70א" points={6} onScore={onScore}
+        question="איזה מהמשפטים הבאים מתאר נכונה את התוצאות המוצגות בטבלה לגבי שיעור תמותת החרקים בשני הזנים?"
+        options={["לאורך כל ימי הניסוי ניתן לראות בבירור שזן א' גורם לתמותה מוקדמת וגבוהה באופן משמעותי מאשר זן ב' בכל שלבי הניסוי.", "שיעור התמותה בשני הזנים נותר אפסי לחלוטין בשבועיים הראשונים לאחר החשיפה, ורק לאחריהם מתחילה עלייה חדה בתמותה.", "לאחר החשיפה לזני הפטריות, שיעור התמותה עלה במשך הזמן בשניהם. עם זאת, קצב התמותה בחשיפה לזן ב' היה תמיד גבוה יותר.", "ניתן לראות בבירור כי בשני הזנים שיעור התמותה הולך ויורד באופן הדרגתי עם הזמן, כיוון שהחרקים מפתחים עמידות כנגדם."]}
+        correctIndex={2}
+        explanation={`הנתונים בטבלה מראים עלייה בתמותה לאורך זמן בשני הזנים, אך ערכי התמותה וקצב העלייה של זן ב' גבוהים יותר בכל נקודת זמן שנמדדה.`}
+      />
+      <MCQ qNum="70ב" points={6} onScore={onScore}
+        question="בטיפול בקרה (שלא הוצג בטבלה) בדקו חרקים שלא נחשפו לפטרייה כלל. מהי חשיבות טיפול זה?"
+        options={["מטרת טיפול הבקרה היא לבחון באיזו מהירות מתרבים החרקים באופן טבעי וללא כל איום בסביבת הגידול שלהם.", "טיפול הבקרה מאפשר לדעת מהו אחוז התמותה הטבעי ולוודא שהחשיפה לפטרייה היא זו שגרמה לעלייה בתמותה.", "טיפול זה נועד לבדוק האם זני הפטרייה מסוגלים להתפתח, לשרוד ולהתרבות ביעילות גם ללא הימצאות חרקים.", "הטיפול נערך אך ורק כדי להבטיח שמספר החרקים הכולל בניסוי יהיה שווה לחלוטין, לשם השוואה סטטיסטית."]}
+        correctIndex={1}
+        explanation={`חשיבות הבקרה היא לשמש בסיס להשוואה. כך ניתן לוודא שהתמותה נגרמה מהטיפול (הפטרייה) ולא מגורמים חיצוניים אחרים או מוות טבעי.`}
+      />
       <div className="bg-yellow-50 p-5 rounded-3xl mb-8 border-2 border-yellow-200 shadow-sm mt-8">
         <h4 className="font-black text-amber-900 text-lg mb-3">ניסוי 2:</h4>
         <p className="text-stone-800 text-sm md:text-base leading-relaxed font-medium">החוקרים רצו לבדוק ממה נובעים ההבדלים שנמצאו בשיעור תמותת החרקים. לשם כך, החוקרים גידלו את שני הזנים של הפטרייה, כל זן בנפרד, על מצע גידול ובו החלבון ג'לטין. החוקרים מדדו את רמת הפירוק של החלבון.<br/><strong>נמצא כי רמת הפירוק של החלבון ג'לטין בנוכחות זן ב' הייתה גבוהה יותר מרמת הפירוק שלו בנוכחות זן א'.</strong></p>
       </div>
-      <MCQ qNum="71" points={7} onScore={onScore} question="בניסוי 2 נמצא שזן ב' מפרק ג'לטין ביעילות גבוהה מזן א'. הסבר מדוע זן ב' קטלני יותר לחרקים." options={["זן א' מפרק רק רב-סוכר בעוד שזן ב' מפרק רק חלבונים.", "זן ב' חודר אל החרק ישירות דרך פתחי מערכת הנשימה.", "זן ב' אינו זקוק כלל לפירוק חלבוני כדי לחדור אל גוף החרק.", "מכיוון שמעטה החרקים מכיל חלבון, זן ב' בעל האנזים היעיל יותר מפרק מהר יותר את המעטה וחודר לחרק."]} correctIndex={3} explanation={`המעטה הקשיח של החרק מכיל חלבון. מאחר שזן ב' מייצר אנזימים מפרקי חלבון (פרוטאזות) יעילים יותר, הוא מצליח לחדור לחרק מהר יותר ולגרום למותו.`} />
-      <MCQ qNum="72" points={6} onScore={onScore} question="האנזימים מפרקי החלבון מצויים בתאי האננס בתוך אברונים. מדוע זה יתרון עבור תאי האננס?" options={["האברון מתפקד כמבודד תרמי יוצא דופן השומר על הטמפרטורה.", "אם האנזימים היו חופשיים בציטופלסמה הם היו גורמים לפירוק חלבונים חיוניים בתא האננס עצמו וגורמים לנזק.", "האברונים משמשים רק לצורך הובלה מהירה של האנזימים אל מחוץ לתא.", "האנזימים דורשים סביבה יבשה לחלוטין כדי לפעול."]} correctIndex={1} explanation={`מידור (Compartmentalization) מגן על התא. ללא האברונים, האנזימים מפרקי החלבון היו מעכלים את חלבוני התא עצמו (אוטוליזה).`} />
+      <MCQ qNum="71" points={7} onScore={onScore}
+        question="בניסוי 2 נמצא שזן ב' מפרק ג'לטין ביעילות גבוהה מזן א'. על סמך נתון זה, מהו ההסבר לכך שזן ב' קטלני יותר לחרקים?"
+        options={["זן א' מפרק רק רב-סוכר בעוד זן ב' מפרק חלבונים. היות וחרקים מכילים בעיקר חלבון, הוא יעיל יותר.", "זן ב' אינו מסתמך על פירוק כימי אלא חודר אל החרק ישירות דרך הנשימה, ולכן פועל במהירות רבה יותר.", "זן א' אינו מייצר אנזימים מפרקים כלל, בעוד זן ב' מייצר רעלנים שחודרים מיד ללא צורך בפירוק מקדים.", "מכיוון שמעטה החרקים מכיל חלבון, זן ב' בעל האנזים היעיל יותר מפרק מהר יותר את המעטה וחודר לחרק."]}
+        correctIndex={3}
+        explanation={`המעטה הקשיח של החרק מכיל חלבון. מאחר שזן ב' מייצר אנזימים מפרקי חלבון (פרוטאזות) יעילים יותר, הוא מצליח לחדור לחרק מהר יותר ולגרום למותו.`}
+      />
+      <MCQ qNum="72" points={6} onScore={onScore}
+        question="האנזימים מפרקי החלבון מצויים בתאי האננס בתוך אברונים. מדוע זה יתרון עבור תאי האננס?"
+        options={["האברון מתפקד כמבודד תרמי מיוחד השומר על האנזימים בטמפרטורה נמוכה למניעת הרס של הפעילות הקטליטית שלהם.", "אם האנזימים היו חופשיים בציטופלסמה הם היו גורמים לפירוק חלבונים חיוניים בתא האננס עצמו וגורמים לנזק.", "האברונים בתא משמשים אך ורק כמאגרים זמניים המאפשרים הפרשה מהירה של האנזימים אל מחוץ לתא בזמן מתקפה.", "אנזימים מפרקי חלבון מסוג זה דורשים סביבה יבשה לחלוטין, והאברון הסגור מספק את התנאים הייחודיים הללו."]}
+        correctIndex={1}
+        explanation={`מידור (Compartmentalization) מגן על התא. ללא האברונים, האנזימים מפרקי החלבון היו מעכלים את חלבוני התא עצמו (אוטוליזה).`}
+      />
     </section>
   );
 };
